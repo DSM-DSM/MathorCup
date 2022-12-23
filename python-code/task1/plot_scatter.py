@@ -29,11 +29,21 @@ order['serviceLastTime'] = (order['serviceLastTime'] - order['serviceFirstTime']
 order['serviceFirstTime'] = (order['serviceFirstTime'] - min(order['serviceFirstTime'])) / 3600
 
 marker = ['o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X']
+order_num = []
+
 for i in range(13):
+    order_num.append(order[order['serviceFirstTime'] == i].shape[0])
     plt.scatter(order[order['serviceFirstTime'] == i].iloc[:, 5], order[order['serviceFirstTime'] == i].iloc[:, 6],
                 c='red', marker=marker[i], linewidths=0.1, label=f'订单Starttime={i}')
     plt.title('订单分布图')
     plt.xlabel('x')
     plt.ylabel('y')
+    plt.xlim(np.min(order['x']), np.max(order['x']))
+    plt.ylim(np.min(order['y']), np.max(order['y']))
     plt.savefig(f'../../pic/order_starttime分布图{i}.png')
     plt.show()
+
+plt.plot(range(13), order_num)
+plt.title('order_starttime数量折线图')
+plt.savefig(f'../../pic/order_starttime数量折线图.png')
+plt.show()
