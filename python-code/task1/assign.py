@@ -95,6 +95,17 @@ class Order(Assign):
         self.data['available'] = available
 
 
+class Aunt(Assign):
+    def __init__(self, data):
+        super(Aunt, self).__init__(data)
+        self.data['avail_time'] = 0
+
+    def updata_aunt_status(self):
+        pass
+
+    def calculate_time(self):
+        pass
+
 # data_order = pd.read_excel('../../data/order2.xlsx')
 # order = Order(data_order)
 # print(order.data['assign_status'])
