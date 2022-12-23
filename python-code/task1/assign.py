@@ -44,8 +44,4 @@ class Assign:
             district.append(dis)
         self.data['district'] = district
 
-#
-# order = pd.read_excel('../../data/order.xlsx')
-# order_assign = Assign(order)
-# order_assign.grid(gridshape=(3, 3))
-# district = order_assign.data['district']
+
