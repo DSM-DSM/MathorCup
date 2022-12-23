@@ -10,8 +10,8 @@ from scipy.spatial import distance_matrix
 
 def main():
     # 导入数据
-    aunt = pd.read_excel('../data/aunt.xlsx')
-    order = pd.read_excel('../data/order.xlsx')
+    aunt = pd.read_excel('../../data/aunt.xlsx')
+    order = pd.read_excel('../../data/order.xlsx')
     score = aunt['serviceScore']
 
     # 计算距离
@@ -26,7 +26,7 @@ def main():
     order['serviceLastTime'] = (order['serviceLastTime'] - order['serviceFirstTime']) / 3600
     order['serviceFirstTime'] = (order['serviceFirstTime'] - min(order['serviceFirstTime'])) / 3600
 
-    order.to_excel('../data/order2.xlsx')
+    order.to_excel('../../data/order2.xlsx')
 
 
 if __name__ == '__main__':
