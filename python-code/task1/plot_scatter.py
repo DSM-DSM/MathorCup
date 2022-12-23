@@ -34,8 +34,8 @@ order_num = []
 for i in range(13):
     order_num.append(order[order['serviceFirstTime'] == i].shape[0])
     plt.scatter(order[order['serviceFirstTime'] == i].iloc[:, 5], order[order['serviceFirstTime'] == i].iloc[:, 6],
-                c='red', marker=marker[i], linewidths=0.1, label=f'订单Starttime={i}')
-    plt.title('订单分布图')
+                c='red', marker=marker[i], linewidths=0.1)
+    plt.title(f'订单分布图,订单Starttime={i}')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.xlim(np.min(order['x']), np.max(order['x']))
