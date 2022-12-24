@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from order import Order
 from aunt import Aunt
+import cvxpy as cp
 
 
 def calculate_dist(x1, x2, y1, y2):
@@ -71,6 +72,3 @@ class Assign(Aunt, Order):
     def test(self):
         print(self.aunt.data.head(5))
         print(self.order.data.head(5))
-
-    def solve(self):
-        pass

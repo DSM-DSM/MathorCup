@@ -28,6 +28,18 @@ class Aunt:
             time = self.calculate_time()
             row['avail_time'] = time
 
+    def get_aunt(self, timestamp):
+        """
+
+        :param timestamp:
+        :return:
+        """
+        if timestamp == 0:
+            return self.data
+        else:
+            idx = [self.data['status'] == 0]
+            return self.data[idx]
+
     def calculate_time(self):
         return 0
 

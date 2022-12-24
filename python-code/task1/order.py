@@ -41,7 +41,8 @@ class Order:
         """
         available = []
         for i in range(self.n):
-            if self.data['serviceFirstTime'].iloc[i] <= timestamp and self.data['assign_status'].iloc[i] == 0:
+            if self.data['serviceFirstTime'].iloc[i] <= timestamp and\
+                    self.data['assign_status'].iloc[i] == 0:
                 available.append(1)
             else:
                 available.append(0)
