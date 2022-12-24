@@ -48,9 +48,9 @@ class Order:
         self.data['available'] = available
 
 
-data_order = pd.read_excel('../../data/order2.xlsx')
-
-order = Order(data_order)
-print(order.data['assign_status'])
-print(order.data['available'])
-order.updata_available_status(0)
+# data_order = pd.read_excel('../../data/order2.xlsx')
+#
+# order = Order(data_order)
+# print(order.order['assign_status'])
+# print(order.order['available'])
+# order.updata_available_status(0)
