@@ -66,19 +66,19 @@ class Assign(Aunt, Order):
                self.grid(self.order.data, self.n_order)
 
     def get_grid(self, data, region_x, region_y):
-        idx = data['district_x'] == region_x
-        idy = data['district_x'] == region_y
-        id = idx & idy
+        id_x = data['district_x'] == region_x
+        id_y = data['district_x'] == region_y
+        id = id_x & id_y
         return data[id]
 
-    def solve(self, solve):
+    def solve(self, solve, aunt, order):
         # for i in self.gridshape[0]:
         #     for j in self.gridshape[1]:
         #         aunt = self.get_grid(self.aunt.data, i, j)
         #         order = self.get_grid(self.order.data, i, j)
         #         result = solve(aunt, order)
         i, j = 0, 0
-        aunt = self.get_grid(self.aunt.data, i, j)
-        order = self.get_grid(self.order.data, i, j)
+        aunt = self.get_grid(aunt, i, j)
+        order = self.get_grid(order, i, j)
         result = solve(aunt, order)
         return result

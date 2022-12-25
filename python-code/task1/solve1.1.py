@@ -21,7 +21,7 @@ t = 0
 assign.grid_iter()
 cur_order = order.get_order(timestamp=t)
 cur_aunt = aunt.get_aunt(timestamp=t)
-a = assign.solve(solve)
+a = assign.solve(solve, cur_aunt, cur_order)
 # a = solve(cur_aunt, cur_order)
 
 # def main():
