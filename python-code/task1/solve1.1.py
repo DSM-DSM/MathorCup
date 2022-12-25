@@ -15,13 +15,14 @@ df_aunt = pd.read_excel('../../data/aunt.xlsx', index_col='id')
 df_order = pd.read_excel('../../data/order2.xlsx', index_col='id')
 aunt = Aunt(df_aunt)
 order = Order(df_order)
-assign = Assign(aunt, order)
+assign = Assign(aunt, order, (3, 3))
 
 t = 0
-assign.grid_iter(gridshape=(3, 3))
+assign.grid_iter()
 cur_order = order.get_order(timestamp=t)
 cur_aunt = aunt.get_aunt(timestamp=t)
-a = solve(cur_aunt, cur_order)
+a = assign.solve(solve)
+# a = solve(cur_aunt, cur_order)
 
 # def main():
 #     pass

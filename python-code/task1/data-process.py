@@ -26,7 +26,12 @@ def main():
     order['serviceLastTime'] = (order['serviceLastTime'] - order['serviceFirstTime']) / 3600
     order['serviceFirstTime'] = (order['serviceFirstTime'] - min(order['serviceFirstTime'])) / 3600
 
+    order['x'] = order['x'] / 1000
+    order['y'] = order['y'] / 1000
+    aunt['x'] = aunt['x'] / 1000
+    aunt['y'] = aunt['x'] / 1000
     order.to_excel('../../data/order2.xlsx')
+    aunt.to_excel('../../data/aunt.xlsx')
 
 
 if __name__ == '__main__':

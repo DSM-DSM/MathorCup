@@ -15,7 +15,7 @@ def calculate_dist(x1, x2, y1, y2):
 
 
 class Assign(Aunt, Order):
-    def __init__(self, aunt, order):
+    def __init__(self, aunt, order, gridshape):
         """
 
         :param data: 读入的原始数据
@@ -25,8 +25,9 @@ class Assign(Aunt, Order):
         self.order = order
         self.n_aunt = aunt.data.shape[0]
         self.n_order = order.data.shape[0]
+        self.gridshape = gridshape
 
-    def grid(self, data_to_grid, n_row, gridshape):
+    def grid(self, data_to_grid, n_row):
         """
         将数据点按照网格划分
         :param n_row:
@@ -44,31 +45,40 @@ class Assign(Aunt, Order):
 
         # 2.循环给数据附加标签1
         district = []
-        x_range = np.linspace(x_min, x_max, gridshape[0] + 1)
-        y_range = np.linspace(y_min, y_max, gridshape[1] + 1)
+        x_range = np.linspace(x_min, x_max, self.gridshape[0] + 1)
+        y_range = np.linspace(y_min, y_max, self.gridshape[1] + 1)
         x_range[0], x_range[-1] = x_range[0] - eps, x_range[-1] + eps
         y_range[0], y_range[-1] = y_range[0] - eps, y_range[-1] + eps
-        # print(x_range)
-        # print(y_range)
+        dis_x = list()
+        dis_y = list()
         for i in range(n_row):
-            dis = list()
-            for j in range(gridshape[0]):
+            for j in range(self.gridshape[0]):
                 if x_range[j] <= data_to_grid['x'].iloc[i] < x_range[j + 1]:
-                    dis.append(j)
-            for k in range(gridshape[1]):
+                    dis_x.append(j)
+            for k in range(self.gridshape[1]):
                 if y_range[k] <= data_to_grid['y'].iloc[i] < y_range[k + 1]:
-                    dis.append(k)
-            # print(dis)
-            # loc = dis[0] * dis[1]
-            if len(dis) != 2:
-                raise "位置列表维数错误！"
-            district.append(dis)
-        data_to_grid['district'] = district
+                    dis_y.append(k)
+        data_to_grid['district_x'] = dis_x
+        data_to_grid['district_y'] = dis_y
 
-    def grid_iter(self, gridshape):
-        return self.grid(self.aunt.data, self.n_aunt, gridshape), \
-               self.grid(self.order.data, self.n_order, gridshape)
+    def grid_iter(self):
+        return self.grid(self.aunt.data, self.n_aunt), \
+               self.grid(self.order.data, self.n_order)
 
-    def test(self):
-        print(self.aunt.data.head(5))
-        print(self.order.data.head(5))
+    def get_grid(self, data, region_x, region_y):
+        idx = data['district_x'] == region_x
+        idy = data['district_x'] == region_y
+        id = idx & idy
+        return data[id]
+
+    def solve(self, solve):
+        # for i in self.gridshape[0]:
+        #     for j in self.gridshape[1]:
+        #         aunt = self.get_grid(self.aunt.data, i, j)
+        #         order = self.get_grid(self.order.data, i, j)
+        #         result = solve(aunt, order)
+        i, j = 0, 0
+        aunt = self.get_grid(self.aunt.data, i, j)
+        order = self.get_grid(self.order.data, i, j)
+        result = solve(aunt, order)
+        return result
