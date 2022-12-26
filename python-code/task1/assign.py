@@ -71,7 +71,7 @@ class Assign(Aunt, Order):
         id = id_x & id_y
         return data[id]
 
-    def solve(self, solve, aunt, order):
+    def solve(self, solve_prob, aunt, order):
         # for i in self.gridshape[0]:
         #     for j in self.gridshape[1]:
         #         aunt = self.get_grid(self.aunt.data, i, j)
@@ -80,5 +80,5 @@ class Assign(Aunt, Order):
         i, j = 0, 0
         aunt = self.get_grid(aunt, i, j)
         order = self.get_grid(order, i, j)
-        result = solve(aunt, order)
+        result = solve_prob(aunt, order)
         return result

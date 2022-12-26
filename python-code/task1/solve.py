@@ -9,7 +9,7 @@ import pandas as pd
 from scipy.spatial import distance_matrix
 
 
-def solve(aunt, order):
+def solve_prob(aunt, order):
     n1 = order.shape[0]
     n2 = aunt.shape[0]
     print(n1, n2)
@@ -21,15 +21,16 @@ def solve(aunt, order):
     # A代表服务分,B代表通行距离,阿姨的服务间隔时间
     A = x @ aunt['serviceScore'].values
     B = cp.multiply(dist, x)
-    C = cp.sum(x) / 2
+    C = n1 / 2
 
     alpha = cp.Parameter(nonneg=True, value=0.78)
     beta = cp.Parameter(nonneg=True, value=0.025)
     gamma = cp.Parameter(nonneg=True, value=0.195)
     obj = cp.sum(A) * alpha - beta * cp.sum(B) - C * gamma
     objective = cp.Maximize(obj)
-    constrains = [cp.sum(x, axis=1) == 1]
+    constrains = [cp.sum(x, axis=1) == 1,
+                  cp.sum(x, axis=0) <= 1]
     # 3.求解问题
     prob = cp.Problem(objective, constrains)
     prob.solve(solver=cp.CPLEX, verbose=True)
-    return prob
+    return prob, x
