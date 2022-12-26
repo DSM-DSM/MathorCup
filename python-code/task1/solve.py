@@ -33,4 +33,5 @@ def solve_prob(aunt, order):
     # 3.求解问题
     prob = cp.Problem(objective, constrains)
     prob.solve(solver=cp.CPLEX, verbose=True)
-    return prob, pd.DataFrame(x)
+    df = pd.DataFrame(x.value)
+    return prob, df

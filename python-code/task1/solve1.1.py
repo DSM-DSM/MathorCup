@@ -15,7 +15,7 @@ df_aunt = pd.read_excel('../../data/aunt.xlsx', index_col='id')
 df_order = pd.read_excel('../../data/order.xlsx', index_col='id')
 aunt = Aunt(df_aunt)
 order = Order(df_order)
-assign = Assign(aunt, order, (10, 10))
+assign = Assign(aunt, order, (20, 20))
 
 t = 0
 assign.grid_iter()
@@ -23,6 +23,10 @@ cur_order = order.get_order(timestamp=t)
 cur_aunt = aunt.get_aunt(timestamp=t)
 prob, x = assign.solve(solve_prob, cur_aunt, cur_order)
 
+# id_x = df_aunt['district_x'] == 0
+# id_y = df_aunt['district_y'] == 5
+# id = id_x & id_y
+# df_aunt[id]
 # def main():
 #     pass
 #

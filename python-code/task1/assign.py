@@ -63,7 +63,7 @@ class Assign(Aunt, Order):
 
     def get_grid(self, data, region_x, region_y):
         id_x = data['district_x'] == region_x
-        id_y = data['district_x'] == region_y
+        id_y = data['district_y'] == region_y
         id = id_x & id_y
         return data[id]
 
@@ -71,10 +71,12 @@ class Assign(Aunt, Order):
         result1, result2 = [], []
         for i in range(self.gridshape[0]):
             for j in range(self.gridshape[1]):
-                aunt = self.get_grid(aunt, i, j)
-                order = self.get_grid(order, i, j)
-                if aunt.shape[0] > 0 and order.shape[0] > 0:
-                    prob, x = solve_prob(aunt, order)
+                cur_aunt = self.get_grid(aunt, i, j)
+                cur_order = self.get_grid(order, i, j)
+                print('位置坐标(%d,%d)' % (i, j))
+                print('Order的个数：%d,Aunt的个数：%d' % (cur_aunt.shape[0], cur_order.shape[0]))
+                if cur_aunt.shape[0] > 0 and cur_order.shape[0] > 0:
+                    prob, x = solve_prob(cur_aunt, cur_order)
                     result1.append(prob)
                     result2.append(x)
         return result1, result2
