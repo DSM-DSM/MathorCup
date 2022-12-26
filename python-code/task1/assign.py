@@ -8,6 +8,7 @@ import numpy as np
 from order import Order
 from aunt import Aunt
 import cvxpy as cp
+from solve import solver
 
 
 class Assign(Aunt, Order):
@@ -61,22 +62,45 @@ class Assign(Aunt, Order):
         self.grid(self.order.data, self.n_order)
         self.grid(self.aunt.data, self.n_aunt)
 
-    def get_grid(self, data, region_x, region_y):
-        id_x = data['district_x'] == region_x
-        id_y = data['district_y'] == region_y
+    def get_grid(self, obj, region_x, region_y):
+        id_x = obj['district_x'] == region_x
+        id_y = obj['district_y'] == region_y
         id = id_x & id_y
-        return data[id]
+        return obj[id]
 
-    def solve(self, solve_prob, aunt, order):
+    def time_solve(self):
+        timestamp = 0
+        result1, result2 = self.grid_solve(solver=solver, timestamp=timestamp)
+        return result1, result2
+
+    def grid_solve(self, solver, timestamp):
+        aunt = self.aunt.get_aunt(timestamp)
+        order = self.order.get_order(timestamp)
         result1, result2 = [], []
+        assign_order = []
         for i in range(self.gridshape[0]):
             for j in range(self.gridshape[1]):
                 cur_aunt = self.get_grid(aunt, i, j)
                 cur_order = self.get_grid(order, i, j)
-                print('位置坐标(%d,%d)' % (i, j))
-                print('Order的个数：%d,Aunt的个数：%d' % (cur_aunt.shape[0], cur_order.shape[0]))
+                # print('位置坐标(%d,%d)' % (i, j))
+                # print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
                 if cur_aunt.shape[0] > 0 and cur_order.shape[0] > 0:
-                    prob, x = solve_prob(cur_aunt, cur_order)
-                    result1.append(prob)
-                    result2.append(x)
+                    if cur_aunt.shape[0] >= cur_order.shape[0]:
+                        prob, x = solver(cur_aunt, cur_order)
+                        assign_order.append(cur_order.id.values)
+                        result1.append(prob)
+                        result2.append(x)
+                        # print('\n')
+                    # else:
+                        # print("Order不能被全部分配！\n")
+                # else:
+                    # print('\n')
+        self.order.update_order_assign_status(assign_order)
         return result1, result2
+
+    def get_order_assign_id(self, order, x):
+        try:
+            idx = order.loc[np.sum(x == 1, axis=0), :].id
+        except KeyError:
+            idx = order.loc[x, 'id']
+        return idx

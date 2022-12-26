@@ -9,10 +9,9 @@ import pandas as pd
 from scipy.spatial import distance_matrix
 
 
-def solve_prob(aunt, order):
+def solver(aunt, order):
     n1 = order.shape[0]
     n2 = aunt.shape[0]
-    print(n1, n2)
     dist = distance_matrix(order.loc[:, ['x', 'y']],
                            aunt.loc[:, ['x', 'y']])
     # 1.定义变量
@@ -32,6 +31,6 @@ def solve_prob(aunt, order):
                   cp.sum(x, axis=0) <= 1]
     # 3.求解问题
     prob = cp.Problem(objective, constrains)
-    prob.solve(solver=cp.CPLEX, verbose=True)
+    prob.solve(solver=cp.CPLEX)
     df = pd.DataFrame(x.value)
     return prob, df

@@ -18,7 +18,7 @@ class Order:
         self.data = data
         self.n = data.shape[0]
         self.data['assign_status'] = 0
-        self.data['available'] = 0
+        self.updata_order_available(timestamp=0)
 
     def get_order(self, timestamp):
         """
@@ -32,26 +32,19 @@ class Order:
             idx = [self.data['assign_status'] == 0 and self.data['available'] == 1]
             return self.data[idx]
 
-    def updata_available_status(self, timestamp):
+    def update_order_assign_status(self, idx):
+        idx_lst = [i for lst in idx for i in lst]
+        id = self.data.id.values
+        index = [i in idx_lst for i in id]
+        self.data.loc[index, 'assign_status'] = 1
+
+    def updata_order_available(self, timestamp):
         """
-        随时间更新可供分配订单状态
-        每次循环应该在get_order之前被调用
-        :param timestamp: 当前时间节点
+
+        :param timestamp:
         :return:
         """
-        available = []
-        for i in range(self.n):
-            if self.data['serviceFirstTime'].iloc[i] <= timestamp and\
-                    self.data['assign_status'].iloc[i] == 0:
-                available.append(1)
-            else:
-                available.append(0)
-        self.data['available'] = available
-
-
-# data_order = pd.read_excel('../../data/order.xlsx')
-#
-# order = Order(data_order)
-# print(order.order['assign_status'])
-# print(order.order['available'])
-# order.updata_available_status(0)
+        self.data['available'] = 0
+        firstime = self.data.serviceFirstTime.values
+        index = [i <= timestamp for i in firstime]
+        self.data.loc[index, 'available'] = 1
