@@ -10,16 +10,12 @@ from assign import Assign
 from aunt import Aunt
 from order import Order
 
-
 df_aunt = pd.read_excel('../../data/aunt.xlsx')
 df_order = pd.read_excel('../../data/order.xlsx')
 aunt = Aunt(df_aunt)
 order = Order(df_order)
 assign = Assign(aunt, order, (15, 15))
-assign.grid_iter()
-assign.time_solve()
-
-
+result1, result2, obj = assign.time_solve()
 
 # def main():
 #     pass

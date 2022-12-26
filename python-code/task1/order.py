@@ -27,10 +27,15 @@ class Order:
         :return:
         """
         if timestamp == 0:
-            return self.data[self.data['serviceFirstTime'] == timestamp]
+            id_1 = self.data['assign_status'] == 0
+            id_2 = self.data['available'] == 1
+            index = id_1 & id_2
+            return self.data[index]
         else:
-            idx = [self.data['assign_status'] == 0 and self.data['available'] == 1]
-            return self.data[idx]
+            id_1 = self.data['assign_status'] == 0
+            id_2 = self.data['available'] == 1
+            index = id_1 & id_2
+            return self.data[index]
 
     def update_order_assign_status(self, idx):
         idx_lst = [i for lst in idx for i in lst]
@@ -48,3 +53,6 @@ class Order:
         firstime = self.data.serviceFirstTime.values
         index = [i <= timestamp for i in firstime]
         self.data.loc[index, 'available'] = 1
+
+
+

@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 from order import Order
 from aunt import Aunt
-import cvxpy as cp
 from solve import solver
 
 
@@ -24,6 +23,7 @@ class Assign(Aunt, Order):
         self.n_order = order.data.shape[0]
         self.gridshape = gridshape
         self.get_grid_info()
+        self.grid_iter()
 
     def get_grid_info(self):
         try:
@@ -70,8 +70,8 @@ class Assign(Aunt, Order):
 
     def time_solve(self):
         timestamp = 0
-        result1, result2 = self.grid_solve(solver=solver, timestamp=timestamp)
-        return result1, result2
+        result1, result2, obj = self.grid_solve(solver=solver, timestamp=timestamp)
+        return result1, result2, obj
 
     def grid_solve(self, solver, timestamp):
         aunt = self.aunt.get_aunt(timestamp)
@@ -82,25 +82,23 @@ class Assign(Aunt, Order):
             for j in range(self.gridshape[1]):
                 cur_aunt = self.get_grid(aunt, i, j)
                 cur_order = self.get_grid(order, i, j)
-                # print('位置坐标(%d,%d)' % (i, j))
-                # print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
+                print('位置坐标(%d,%d)' % (i, j))
+                print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
                 if cur_aunt.shape[0] > 0 and cur_order.shape[0] > 0:
                     if cur_aunt.shape[0] >= cur_order.shape[0]:
                         prob, x = solver(cur_aunt, cur_order)
                         assign_order.append(cur_order.id.values)
                         result1.append(prob)
-                        result2.append(x)
-                        # print('\n')
-                    # else:
-                        # print("Order不能被全部分配！\n")
-                # else:
-                    # print('\n')
+                        result2.append(self.aunt.extract_info_x(x, cur_aunt, cur_order))
+                        print('\n')
+                    else:
+                        print("Order不能被全部分配！\n")
+                else:
+                    print('\n')
         self.order.update_order_assign_status(assign_order)
-        return result1, result2
+        self.aunt.updata_aunt_info(result2)
+        obj = sum([res.value for res in result1])
+        return result1, result2, obj
 
-    def get_order_assign_id(self, order, x):
-        try:
-            idx = order.loc[np.sum(x == 1, axis=0), :].id
-        except KeyError:
-            idx = order.loc[x, 'id']
-        return idx
+    def enlarge_gridsize(self):
+        pass
