@@ -17,12 +17,12 @@ order_loc = order_loc.values
 
 plt.rcParams['font.sans-serif'] = [u'SimHei']
 plt.rcParams['axes.unicode_minus'] = False
-# plt.scatter(aunt_loc[:, 0], aunt_loc[:, 1], marker='o', linewidths=0.1)
-# plt.title('阿姨分布图')
-# plt.xlabel('x')
-# plt.ylabel('y')
-# plt.savefig('../../pic/aunt.png')
-# plt.show()
+plt.scatter(aunt_loc[:, 0], aunt_loc[:, 1], marker='o', linewidths=0.1)
+plt.title('阿姨分布图')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.savefig('../../pic/aunt.png')
+plt.show()
 
 order['serviceUnitTime'] = order['serviceUnitTime'] / 60
 order['serviceLastTime'] = (order['serviceLastTime'] - order['serviceFirstTime']) / 3600

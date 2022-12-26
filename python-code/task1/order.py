@@ -49,7 +49,7 @@ class Order:
         self.data['available'] = available
 
 
-# data_order = pd.read_excel('../../data/order2.xlsx')
+# data_order = pd.read_excel('../../data/order.xlsx')
 #
 # order = Order(data_order)
 # print(order.order['assign_status'])

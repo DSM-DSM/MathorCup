@@ -10,14 +10,13 @@ from scipy.spatial import distance_matrix
 
 def main():
     # 导入数据
-    aunt = pd.read_excel('../../data/aunt.xlsx')
-    order = pd.read_excel('../../data/order.xlsx')
+    aunt = pd.read_excel('../../data/附件2：阿姨数据.xlsx')
+    order = pd.read_excel('../../data/附件1：订单数据.xlsx')
     score = aunt['serviceScore']
 
     # 计算距离
     aunt_loc = aunt.iloc[:, 2:5] / 1000
     order_loc = order.iloc[:, 5:7] / 1000
-    dist = distance_matrix(aunt_loc, order_loc)
 
     # 处理时间信息
     # order ['id', 'createTime', 'serviceFirstTime', 'serviceLastTime','serviceUnitTime', 'x', 'y']
@@ -26,11 +25,12 @@ def main():
     order['serviceLastTime'] = (order['serviceLastTime'] - order['serviceFirstTime']) / 3600
     order['serviceFirstTime'] = (order['serviceFirstTime'] - min(order['serviceFirstTime'])) / 3600
 
-    order['x'] = order['x'] / 1000
-    order['y'] = order['y'] / 1000
-    aunt['x'] = aunt['x'] / 1000
-    aunt['y'] = aunt['x'] / 1000
-    order.to_excel('../../data/order2.xlsx')
+    order['x1'] = order['x'] / 1000
+    order['y1'] = order['y'] / 1000
+    aunt['x1'] = aunt['x'] / 1000
+    aunt['y1'] = aunt['x'] / 1000
+
+    order.to_excel('../../data/order.xlsx')
     aunt.to_excel('../../data/aunt.xlsx')
 
 
