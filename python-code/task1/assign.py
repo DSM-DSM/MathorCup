@@ -140,7 +140,7 @@ class Assign(Aunt, Order):
                         # 阿姨数量大于订单数量，则所有订单都能被分配
                         print('位置坐标(%d,%d)' % (i, j))
                         print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
-                        prob, x = solver(cur_aunt, cur_order)
+                        prob, x = solver(cur_aunt, cur_order, timestamp)
                         assign_order.append(cur_order.id.values)
                         result1.append(prob.value * cur_order.shape[0])
                         result2.append(self.aunt.extract_info_x(x, cur_aunt, cur_order))

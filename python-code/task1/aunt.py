@@ -15,7 +15,7 @@ class Aunt:
         self.data['status'] = 0
         self.data['order'] = [[] for _ in range(self.n)]
         self.data['when_get_order'] = [[] for _ in range(self.n)]
-        self.data['first'] = 0
+        self.data['first'] = 1
         self.velocity = 15
 
     def updata_aunt_info(self, aunt_assign_index, timestamp):
@@ -30,7 +30,7 @@ class Aunt:
             aunt_id = aunt_assign_index.iloc[index, 0]
             self.data.loc[aunt_id, :].order.append(order_id)
             self.data.loc[aunt_id, :].when_get_order.append(timestamp)
-            self.data.loc[aunt_id, 'first'] = 1
+            self.data.loc[aunt_id, 'first'] = 0
             self.data.loc[aunt_id, 'status'] = 1
         return aunt_assign_index
 
