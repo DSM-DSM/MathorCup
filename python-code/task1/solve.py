@@ -25,7 +25,7 @@ def solver(aunt, order):
     alpha = cp.Parameter(nonneg=True, value=0.78)
     beta = cp.Parameter(nonneg=True, value=0.025)
     gamma = cp.Parameter(nonneg=True, value=0.195)
-    obj = cp.sum(A) * alpha - beta * cp.sum(B) - C * gamma
+    obj = (cp.sum(A) * alpha - beta * cp.sum(B) - C * gamma) / n1
     objective = cp.Maximize(obj)
     constrains = [cp.sum(x, axis=1) == 1,
                   cp.sum(x, axis=0) <= 1]

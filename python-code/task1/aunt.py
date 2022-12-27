@@ -14,10 +14,11 @@ class Aunt:
         self.data['avail_time'] = 0
         self.data['status'] = 0
         self.data['order'] = [[] for _ in range(self.n)]
+        self.data['when_get_order'] = [[] for _ in range(self.n)]
         self.data['first'] = 0
         self.velocity = 15
 
-    def updata_aunt_info(self, aunt_assign_index):
+    def updata_aunt_info(self, aunt_assign_index, timestamp):
         """
         aunt_assign_index需要事先转换为DataFrame类型
         :param aunt_assign_index:
@@ -28,11 +29,10 @@ class Aunt:
             order_id = aunt_assign_index.iloc[index, 1]
             aunt_id = aunt_assign_index.iloc[index, 0]
             self.data.loc[aunt_id, :].order.append(order_id)
+            self.data.loc[aunt_id, :].when_get_order.append(timestamp)
             self.data.loc[aunt_id, 'first'] = 1
             self.data.loc[aunt_id, 'status'] = 1
-            time = self.calculate_time()
-            self.data.loc[aunt_id, 'avail_time'] = time
-            self.updata_aunt_xy(aunt_id, order_id)
+        return aunt_assign_index
 
     def get_aunt(self, timestamp):
         """
@@ -43,19 +43,13 @@ class Aunt:
         if timestamp == 0:
             id_1 = self.data['status'] == 0
             id_2 = self.data['avail_time'] <= timestamp
-            index = id_1
+            index = id_1 & id_2
             return self.data[index]
         else:
             id_1 = self.data['status'] == 0
             id_2 = self.data['avail_time'] <= timestamp
             index = id_1 & id_2
             return self.data[index]
-
-    def calculate_time(self):
-        return 0
-
-    def updata_aunt_xy(self, aunt_id, order_id):
-        pass
 
     def extract_info_x(self, x, aunt, order):
         order_info = np.where(x == 1)[0]
@@ -74,6 +68,3 @@ class Aunt:
         df['aunt_id'] = aunt
         df['order_id'] = order
         return df
-
-# data_aunt = pd.read_excel('../../data/aunt.xlsx')
-# aunt = Aunt(data_aunt)
