@@ -12,18 +12,15 @@ df_aunt = pd.read_excel('../../data/aunt.xlsx')
 df_order = pd.read_excel('../../data/order.xlsx')
 aunt = Aunt(df_aunt)
 order = Order(df_order)
-assign = Assign(aunt, order, (16, 15))
+assign = Assign(aunt, order, (10, 10))
+# assign.use_high_quality = True
 obj_final, n_final = assign.time_solve()
 print(obj_final / n_final)
 
-# (22,22)
-# (20,20)
-# (19,19)
-# (18,18)
-# (17,17) 0.35452089029360845
-# (16,16) 0.39912246152969627
-# (16,15) 0.40289120972633286
-# (40,40) 0.21778516015368363
+#  high_quality_aunt    1            0
+#      (16,15) 0.20301235811603816 0.21321570090918196
+#      (16,12) 0.20930552563197327 0.21321570090918196
+#      (10,10) 0.21509575652426950 0.22437297677430199
 
 # def main():
 #     pass

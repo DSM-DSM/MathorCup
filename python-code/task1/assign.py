@@ -3,11 +3,12 @@
 # @Author : JinYueYu
 # Description : 
 # Copyright JinYueYu.All Right Reserved.
+import math
 import numpy as np
 from order import Order
 from aunt import Aunt
 from solve import solver
-import math
+from scipy.spatial import distance_matrix
 
 
 class Assign(Aunt, Order):
@@ -28,6 +29,7 @@ class Assign(Aunt, Order):
         self.all_to_program = False
         self.var_limit = 1000
         self.force_to_next_time = False
+        self.use_high_quality = False
 
     def get_grid_info(self):
         try:
@@ -159,7 +161,11 @@ class Assign(Aunt, Order):
                         print('位置坐标(%d,%d)' % (i, j))
                         print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
                         # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
-                        prob, x = solver(cur_aunt, cur_order, timestamp)
+                        if self.use_high_quality:
+                            high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
+                            prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
+                        else:
+                            prob, x = solver(cur_aunt, cur_order, timestamp)
                         assign_order.append(cur_order.id.values)
                         result1.append(prob.value * cur_order.shape[0])
                         result2.append(self.aunt.extract_info_x(x, cur_aunt, cur_order))
@@ -234,3 +240,15 @@ class Assign(Aunt, Order):
             return t
         else:
             return (k + 1) * 0.5
+
+    def choose_high_quality_aunt(self, aunt, order):
+        if self.assign_has_huge_diff(aunt, order):
+            num = int(order.shape[0] * 1.5)
+            high_quality_aunt = aunt.sort_values(by='serviceScore', ascending=False)[:num]
+            return high_quality_aunt.id
+        return aunt.id
+
+    def assign_has_huge_diff(self, aunt, order):
+        if aunt.shape[0] > 4 * order.shape[0]:
+            return True
+        return False
