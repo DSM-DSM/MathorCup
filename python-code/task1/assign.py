@@ -79,9 +79,17 @@ class Assign(Aunt, Order):
         return obj[id]
 
     def time_solve(self):
-        pass
+        time_linspace = np.linspace(0, 13, 27)
+        obj = 0
+        n = 0
+        for time in time_linspace:
+            self.order.updata_order_available(time)
+            obj_t, n_t = self.grid_iter_solve(time)
+            obj += obj_t
+            n += n_t
+        return obj, n
 
-    def grid_iter_solve(self, timestamp=0):
+    def grid_iter_solve(self, timestamp):
         """
         网格化循环求解的函数
         :param timestamp: 当前时间戳
@@ -100,6 +108,7 @@ class Assign(Aunt, Order):
         #         self.all_to_program = False
         #         break
         while order_remain >= 5:
+            print(f"************第{timestamp}时刻************")
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)
@@ -151,8 +160,9 @@ class Assign(Aunt, Order):
                 elif self.cur_order_all_assign and cur_order.shape[0] > 0:
                     # 阿姨数量大于订单数量分支种订单全部被分配的条件下，存在订单数>0而阿姨数等于0的情况
                     self.cur_order_all_assign = False
-        # 更新阿姨&订单的状态
+        # 更新订单的状态
         self.order.update_order_assign_status(assign_order)
+        # 更新阿姨的状态
         aunt_order_indexer = self.aunt.updata_aunt_info(result2, timestamp)
         self.updata_aunt_xy(aunt_order_indexer)
         return result1, n

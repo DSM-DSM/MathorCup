@@ -15,7 +15,7 @@ df_order = pd.read_excel('../../data/order.xlsx')
 aunt = Aunt(df_aunt)
 order = Order(df_order)
 assign = Assign(aunt, order, (15, 17))
-obj_final, n_final = assign.grid_iter_solve()
+obj_final, n_final = assign.time_solve()
 # def main():
 #     pass
 #

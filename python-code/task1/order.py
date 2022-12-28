@@ -18,7 +18,7 @@ class Order:
         self.data = data
         self.n = data.shape[0]
         self.data['assign_status'] = 0
-        self.updata_order_available(timestamp=0)
+
 
     def get_order(self, timestamp):
         """

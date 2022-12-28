@@ -28,7 +28,7 @@ def main():
     order['x1'] = order['x'] / 1000
     order['y1'] = order['y'] / 1000
     aunt['x1'] = aunt['x'] / 1000
-    aunt['y1'] = aunt['x'] / 1000
+    aunt['y1'] = aunt['y'] / 1000
 
     order.to_excel('../../data/order.xlsx')
     aunt.to_excel('../../data/aunt.xlsx')
