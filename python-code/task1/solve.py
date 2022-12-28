@@ -21,12 +21,13 @@ def solver(aunt, order, timestamp):
     A = x @ aunt['serviceScore'].values
     B = cp.multiply(dist, x)
     time_step = aunt['first'].to_numpy()
+    when_get_order = aunt['when_get_order'].to_numpy()
     for i in range(n_aunt):
         if time_step[i] == 1:
             # 第i个阿姨是第一次分配到订单
             time_step[i] = 0.5
         else:
-            time_step[i] = timestamp - aunt.loc[i, 'when_get_order'][-1]
+            time_step[i] = timestamp - when_get_order[i][-1]
     C = cp.sum(x, axis=0) @ time_step
     alpha = cp.Parameter(nonneg=True, value=0.78)
     beta = cp.Parameter(nonneg=True, value=0.025)
@@ -37,6 +38,9 @@ def solver(aunt, order, timestamp):
                   cp.sum(x, axis=0) <= 1]
     # 3.求解问题
     prob = cp.Problem(objective, constrains)
-    prob.solve(solver=cp.CPLEX)
-    df = pd.DataFrame(x.value)
-    return prob, df
+    try:
+        prob.solve(solver=cp.CPLEX)
+        df = pd.DataFrame(x.value)
+        return prob, df
+    except cp.error.SolverError:
+        print('错误，超出求解器变量上限；当前Order%d,Aunt%d。' % (n_order, n_aunt))

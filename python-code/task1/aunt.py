@@ -12,7 +12,7 @@ class Aunt:
         self.data = data
         self.n = self.data.shape[0]
         self.data['avail_time'] = 0
-        self.data['status'] = 0
+        self.data['assign_status'] = 0
         self.data['order'] = [[] for _ in range(self.n)]
         self.data['when_get_order'] = [[] for _ in range(self.n)]
         self.data['first'] = 1
@@ -31,8 +31,12 @@ class Aunt:
             self.data.loc[aunt_id, :].order.append(order_id)
             self.data.loc[aunt_id, :].when_get_order.append(timestamp)
             self.data.loc[aunt_id, 'first'] = 0
-            self.data.loc[aunt_id, 'status'] = 1
+            self.data.loc[aunt_id, 'assign_status'] = 1
         return aunt_assign_index
+
+    def updata_aunt_assign_status(self, timestamp):
+        idx = self.data['avail_time'] <= timestamp
+        self.data.loc[idx, 'assign_status'] = 0
 
     def get_aunt(self, timestamp):
         """
@@ -41,12 +45,12 @@ class Aunt:
         :return:
         """
         if timestamp == 0:
-            id_1 = self.data['status'] == 0
+            id_1 = self.data['assign_status'] == 0
             id_2 = self.data['avail_time'] <= timestamp
             index = id_1 & id_2
             return self.data[index]
         else:
-            id_1 = self.data['status'] == 0
+            id_1 = self.data['assign_status'] == 0
             id_2 = self.data['avail_time'] <= timestamp
             index = id_1 & id_2
             return self.data[index]

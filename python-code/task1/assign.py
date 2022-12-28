@@ -85,6 +85,7 @@ class Assign(Aunt, Order):
         n = 0
         for time in time_linspace:
             self.order.updata_order_available(time)
+            self.aunt.updata_aunt_assign_status(time)
             print(f"*************第{time}时刻*************")
             obj_t, n_t = self.grid_iter_solve(time)
             obj += obj_t
@@ -133,6 +134,12 @@ class Assign(Aunt, Order):
         因此sum(result1)/n 即为此次求解的最终目标函数值
         """
         # 根据时间和阿姨&订单状态选出候选阿姨
+        cur_gridshape = self.enlarge_gridshape(iter_num)
+        if cur_gridshape == self.enlarge_gridshape(iter_num - 1):
+            self.force_to_next_time = True
+            return [], 0
+        self.grid_iter(cur_gridshape)
+        print('********当前gridsize:(%d, %d)********' % (cur_gridshape[0], cur_gridshape[1]))
         aunt = self.aunt.get_aunt(timestamp)
         order = self.order.get_order(timestamp)
         # 判断此时是否可以考虑将全部阿姨订单同时加入规划
@@ -140,12 +147,6 @@ class Assign(Aunt, Order):
         result1, result2 = [], []
         assign_order = []
         n = 0
-        cur_gridshape = self.enlarge_gridshape(iter_num)
-        if cur_gridshape == self.enlarge_gridshape(iter_num - 1):
-            self.force_to_next_time = True
-            return [], 0
-        self.grid_iter(cur_gridshape)
-        print('********当前gridsize:(%d, %d)********' % (cur_gridshape[0], cur_gridshape[1]))
         for i in range(cur_gridshape[0]):
             for j in range(cur_gridshape[1]):
                 # 从候选阿姨&订单中选出指定区域位置的阿姨&订单
