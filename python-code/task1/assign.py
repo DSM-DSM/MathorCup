@@ -133,13 +133,13 @@ class Assign(Aunt, Order):
         :return:result1是一个列表,内部包含了求解器的目标函数值*订单个数;n是一个数字,代表此次求解的总订单数
         因此sum(result1)/n 即为此次求解的最终目标函数值
         """
-        # 根据时间和阿姨&订单状态选出候选阿姨
         cur_gridshape = self.enlarge_gridshape(iter_num)
         if cur_gridshape == self.enlarge_gridshape(iter_num - 1):
             self.force_to_next_time = True
             return [], 0
         self.grid_iter(cur_gridshape)
         print('********当前gridsize:(%d, %d)********' % (cur_gridshape[0], cur_gridshape[1]))
+        # 根据时间和阿姨&订单状态选出候选阿姨
         aunt = self.aunt.get_aunt(timestamp)
         order = self.order.get_order(timestamp)
         # 判断此时是否可以考虑将全部阿姨订单同时加入规划
@@ -158,6 +158,7 @@ class Assign(Aunt, Order):
                         # 阿姨数量大于订单数量，则所有订单都能被分配
                         print('位置坐标(%d,%d)' % (i, j))
                         print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
+                        # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
                         prob, x = solver(cur_aunt, cur_order, timestamp)
                         assign_order.append(cur_order.id.values)
                         result1.append(prob.value * cur_order.shape[0])
@@ -207,7 +208,9 @@ class Assign(Aunt, Order):
                 r = self.gridshape[0] - 1 * iter_num
                 c = self.gridshape[1] - 1 * iter_num
                 if r == 0 or c == 0:
-                    size = (1, 1)
+                    r = self.gridshape[0] - 1 * (iter_num - 1)
+                    c = self.gridshape[1] - 1 * (iter_num - 1)
+                    size = (r, c)
                     return size
                 size = (r, c)
                 return size
@@ -219,7 +222,8 @@ class Assign(Aunt, Order):
             p1 = (self.aunt.data.loc[aunt_id, 'x'], self.aunt.data.loc[aunt_id, 'y'])
             p2 = (self.order.data.loc[order_id, 'x'], self.order.data.loc[order_id, 'y'])
             dist = math.dist(p1, p2)
-            self.aunt.data.loc[aunt_id, 'avail_time'] = self.calculate_time(dist)
+            self.aunt.data.loc[aunt_id, 'avail_time'] = self.calculate_time(dist) + self.order.data.loc[
+                index, 'serviceUnitTime']
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']
 

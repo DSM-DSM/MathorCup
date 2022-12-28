@@ -19,7 +19,6 @@ class Order:
         self.n = data.shape[0]
         self.data['assign_status'] = 0
 
-
     def get_order(self, timestamp):
         """
 
@@ -53,6 +52,3 @@ class Order:
         firstime = self.data.serviceFirstTime.values
         index = [i <= timestamp for i in firstime]
         self.data.loc[index, 'available'] = 1
-
-
-

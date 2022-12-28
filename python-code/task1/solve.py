@@ -22,12 +22,13 @@ def solver(aunt, order, timestamp):
     B = cp.multiply(dist, x)
     time_step = aunt['first'].to_numpy()
     when_get_order = aunt['when_get_order'].to_numpy()
+    order_lasting_time = order['serviceUnitTime'].to_numpy()
     for i in range(n_aunt):
         if time_step[i] == 1:
             # 第i个阿姨是第一次分配到订单
             time_step[i] = 0.5
         else:
-            time_step[i] = timestamp - when_get_order[i][-1]
+            time_step[i] = timestamp - when_get_order[i][-1] - order_lasting_time[i]
     C = cp.sum(x, axis=0) @ time_step
     alpha = cp.Parameter(nonneg=True, value=0.78)
     beta = cp.Parameter(nonneg=True, value=0.025)
