@@ -27,6 +27,7 @@ class Assign(Aunt, Order):
         self.grid_iter(self.gridshape)
         self.all_to_program = False
         self.var_limit = 1000
+        self.force_to_next_time = False
 
     def get_grid_info(self):
         try:
@@ -84,6 +85,7 @@ class Assign(Aunt, Order):
         n = 0
         for time in time_linspace:
             self.order.updata_order_available(time)
+            print(f"*************第{time}时刻*************")
             obj_t, n_t = self.grid_iter_solve(time)
             obj += obj_t
             n += n_t
@@ -107,16 +109,18 @@ class Assign(Aunt, Order):
         #         self.cur_order_all_assign = False
         #         self.all_to_program = False
         #         break
-        while order_remain >= 5:
-            print(f"************第{timestamp}时刻************")
+        while order_remain >= 5 and self.force_to_next_time == False:
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)
             n_final += n
             iter_num += 1
             order_remain = self.order.get_order(timestamp).shape[0]
+        if self.force_to_next_time:
+            print('**********强制进入下一个时刻**********')
         self.cur_order_all_assign = False
         self.all_to_program = False
+        self.force_to_next_time = False
         return obj_final, n_final
 
     def grid_solve(self, solver, timestamp, iter_num):
@@ -137,7 +141,11 @@ class Assign(Aunt, Order):
         assign_order = []
         n = 0
         cur_gridshape = self.enlarge_gridshape(iter_num)
+        if cur_gridshape == self.enlarge_gridshape(iter_num - 1):
+            self.force_to_next_time = True
+            return [], 0
         self.grid_iter(cur_gridshape)
+        print('********当前gridsize:(%d, %d)********' % (cur_gridshape[0], cur_gridshape[1]))
         for i in range(cur_gridshape[0]):
             for j in range(cur_gridshape[1]):
                 # 从候选阿姨&订单中选出指定区域位置的阿姨&订单
@@ -193,8 +201,13 @@ class Assign(Aunt, Order):
             else:
                 # r = round(math.pow(self.gridshape[0], 1 / 2 * iter_num))
                 # c = round(math.pow(self.gridshape[1], 1 / 2 * iter_num))
-                r = round(self.gridshape[0] / (iter_num))
-                c = round(self.gridshape[1] / (iter_num))
+                # r = round(self.gridshape[0] / (iter_num))
+                # c = round(self.gridshape[1] / (iter_num))
+                r = self.gridshape[0] - 1 * iter_num
+                c = self.gridshape[1] - 1 * iter_num
+                if r == 0 or c == 0:
+                    size = (1, 1)
+                    return size
                 size = (r, c)
                 return size
 
