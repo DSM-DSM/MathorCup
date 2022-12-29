@@ -5,6 +5,8 @@
 # Copyright JinYueYu.All Right Reserved.
 import math
 import numpy as np
+import pandas as pd
+
 from order import Order
 from aunt import Aunt
 from solve import solver
@@ -112,7 +114,7 @@ class Assign(Aunt, Order):
         #         self.cur_order_all_assign = False
         #         self.all_to_program = False
         #         break
-        while order_remain >= 5 and self.force_to_next_time == False:
+        while order_remain >= 5 and not self.force_to_next_time:
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)
@@ -146,8 +148,8 @@ class Assign(Aunt, Order):
         order = self.order.get_order(timestamp)
         # 判断此时是否可以考虑将全部阿姨订单同时加入规划
         self.check_all_to_program(aunt, order)
-        result1, result2 = [], []
-        assign_order = []
+        result1 = []
+        result2 = pd.DataFrame(columns=['aunt_id', 'order_id'])
         n = 0
         for i in range(cur_gridshape[0]):
             for j in range(cur_gridshape[1]):
@@ -166,9 +168,10 @@ class Assign(Aunt, Order):
                             prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
                         else:
                             prob, x = solver(cur_aunt, cur_order, timestamp)
-                        assign_order.append(cur_order.id.values)
+                        # assign_order.append(cur_order.id.values)
                         result1.append(prob.value * cur_order.shape[0])
-                        result2.append(self.aunt.extract_info_x(x, cur_aunt, cur_order))
+                        info = self.extract_info(x, cur_aunt, cur_order)
+                        result2 = pd.concat([result2, info])
                         n += cur_order.shape[0]
                     elif self.cur_order_all_assign:
                         # 阿姨数小于订单数，存在订单不饿能被分配
@@ -176,11 +179,12 @@ class Assign(Aunt, Order):
                 elif self.cur_order_all_assign and cur_order.shape[0] > 0:
                     # 阿姨数量大于订单数量分支种订单全部被分配的条件下，存在订单数>0而阿姨数等于0的情况
                     self.cur_order_all_assign = False
-        # 更新订单的状态
-        self.order.update_order_assign_status(assign_order)
         # 更新阿姨的状态
-        aunt_order_indexer = self.aunt.updata_aunt_info(result2, timestamp)
-        self.updata_aunt_xy(aunt_order_indexer, timestamp)
+        self.aunt.updata_aunt_info(result2, timestamp)
+        # 更新订单的状态
+        self.order.update_order_assign_status(result2)
+        # 在Assign中更新有关Aunt和Order交互信息的状态
+        self.updata_aunt_order(result2, timestamp)
         return result1, n
 
     def check_all_to_program(self, cur_aunt, cur_order):
@@ -221,15 +225,18 @@ class Assign(Aunt, Order):
                 size = (r, c)
                 return size
 
-    def updata_aunt_xy(self, indexer, timestamp):
+    def updata_aunt_order(self, indexer, timestamp):
         for index in range(len(indexer)):
-            order_id = indexer.iloc[index, 1]
-            aunt_id = indexer.iloc[index, 0]
+            # aunt&order_id是派单双方的id。因为在初始化Aunt和Order类时，设置了以id为index,loc方法是以index索引的
+            order_id = indexer.iloc[index, :].order_id
+            aunt_id = indexer.iloc[index, :].aunt_id
             p1 = (self.aunt.data.loc[aunt_id, 'x'], self.aunt.data.loc[aunt_id, 'y'])
             p2 = (self.order.data.loc[order_id, 'x'], self.order.data.loc[order_id, 'y'])
             dist = math.dist(p1, p2)
             self.aunt.data.loc[aunt_id, 'avail_time'] = timestamp + self.calculate_time(dist) + self.order.data.loc[
-                index, 'serviceUnitTime']
+                order_id, 'serviceUnitTime']
+            self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
+                    timestamp + self.calculate_time(dist))
             self.order.data.loc[order_id, 'aunt_id'] = aunt_id
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']
@@ -253,3 +260,18 @@ class Assign(Aunt, Order):
         if aunt.shape[0] > 4 * order.shape[0]:
             return True
         return False
+
+    def extract_info(self, x, cur_aunt, cur_order):
+        aunt_id = np.where(x == 1)[1]
+        order_id = np.where(x == 1)[0]
+        df = pd.DataFrame(columns=['aunt_id', 'order_id'])
+        aunt = []
+        order = []
+        for i in range(len(aunt_id)):
+            a = cur_aunt.iloc[aunt_id[i], :].name
+            o = cur_order.iloc[order_id[i], :].name
+            aunt.append(a)
+            order.append(o)
+        df['aunt_id'] = aunt
+        df['order_id'] = order
+        return df

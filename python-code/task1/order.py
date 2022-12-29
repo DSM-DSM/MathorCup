@@ -18,7 +18,8 @@ class Order:
         self.data = data
         self.n = data.shape[0]
         self.data['assign_status'] = 0
-        self.data['aunt_id'] = 9999
+        self.data['aunt_id'] = 99999999
+        self.data['serviceStartTime'] = 99999999
 
     def get_order(self, timestamp):
         """
@@ -37,10 +38,10 @@ class Order:
             index = id_1 & id_2
             return self.data[index]
 
-    def update_order_assign_status(self, idx):
-        idx_lst = [i for lst in idx for i in lst]
-        id = self.data.id.values
-        index = [i in idx_lst for i in id]
+    def update_order_assign_status(self, aunt_order_indexer):
+        order_id = aunt_order_indexer.order_id.values
+        id = self.data.index.values
+        index = [i in order_id for i in id]
         self.data.loc[index, 'assign_status'] = 1
 
     def updata_order_available(self, timestamp):

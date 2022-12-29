@@ -29,7 +29,7 @@ def solver(aunt, order, timestamp, *args):
     if args:
         high_quality_aunt_id = args[0]
     else:
-        high_quality_aunt_id = aunt.id
+        high_quality_aunt_id = aunt.index
     n_order = order.shape[0]
     n_aunt = aunt.shape[0]
     dist = distance_matrix(order.loc[:, ['x', 'y']],
@@ -53,7 +53,7 @@ def solver(aunt, order, timestamp, *args):
             time_step[i] = 0.5
         if time_step[i] == 0:
             time_step[i] = timestamp - avail_time[i]
-        if aunt.iloc[i, :].id in high_quality_aunt_id:
+        if aunt.iloc[i, :].name in high_quality_aunt_id:
             if_high_quality[i] = 1
     C = cp.sum(x, axis=0) @ time_step
 
@@ -62,12 +62,16 @@ def solver(aunt, order, timestamp, *args):
     objective = cp.Maximize(obj)
     constrain_matrix = generate_constrain_matrix(aunt, order)
     # axis = 1 / 0 <==> 按行/列求和
-    constrains = [cp.sum(x, axis=1) <= 1,
-                  cp.sum(x, axis=0) <= if_high_quality,
-                  x <= constrain_matrix]
+    constrains = [cp.sum(x, axis=0) <= if_high_quality,
+                  x <= constrain_matrix,
+                  cp.sum(x, axis=0) <= 1]
+    for i in range(n_order):
+        if np.sum(constrain_matrix) >= 1:
+            constrains += [cp.sum(x, axis=1)[i] == 1]
 
     # 4.求解问题
     prob = cp.Problem(objective, constrains)
     prob.solve(solver=cp.GLPK_MI)
-    df = pd.DataFrame(x.value)
-    return prob, df
+    if prob.status == 'optimal':
+        df = pd.DataFrame(x.value)
+        return prob, df
