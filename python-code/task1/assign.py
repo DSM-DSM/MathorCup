@@ -180,7 +180,7 @@ class Assign(Aunt, Order):
         self.order.update_order_assign_status(assign_order)
         # 更新阿姨的状态
         aunt_order_indexer = self.aunt.updata_aunt_info(result2, timestamp)
-        self.updata_aunt_xy(aunt_order_indexer)
+        self.updata_aunt_xy(aunt_order_indexer, timestamp)
         return result1, n
 
     def check_all_to_program(self, cur_aunt, cur_order):
@@ -221,15 +221,16 @@ class Assign(Aunt, Order):
                 size = (r, c)
                 return size
 
-    def updata_aunt_xy(self, indexer):
+    def updata_aunt_xy(self, indexer, timestamp):
         for index in range(len(indexer)):
             order_id = indexer.iloc[index, 1]
             aunt_id = indexer.iloc[index, 0]
             p1 = (self.aunt.data.loc[aunt_id, 'x'], self.aunt.data.loc[aunt_id, 'y'])
             p2 = (self.order.data.loc[order_id, 'x'], self.order.data.loc[order_id, 'y'])
             dist = math.dist(p1, p2)
-            self.aunt.data.loc[aunt_id, 'avail_time'] = self.calculate_time(dist) + self.order.data.loc[
+            self.aunt.data.loc[aunt_id, 'avail_time'] = timestamp + self.calculate_time(dist) + self.order.data.loc[
                 index, 'serviceUnitTime']
+            self.order.data.loc[order_id, 'aunt_id'] = aunt_id
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']
 

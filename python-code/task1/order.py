@@ -18,6 +18,7 @@ class Order:
         self.data = data
         self.n = data.shape[0]
         self.data['assign_status'] = 0
+        self.data['aunt_id'] = 9999
 
     def get_order(self, timestamp):
         """
