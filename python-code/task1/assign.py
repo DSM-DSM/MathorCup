@@ -162,7 +162,7 @@ class Assign(Aunt, Order):
                     # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
                     if self.use_high_quality:
                         high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
-                        prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
+                        prob, x = solver(cur_aunt, cur_order, timestamp,high_quality_aunt_id)
                     else:
                         prob, x = solver(cur_aunt, cur_order, timestamp)
                     result1.append(prob.value * cur_order.shape[0])
@@ -179,7 +179,6 @@ class Assign(Aunt, Order):
         # 在Assign中更新有关Aunt和Order交互信息的状态
         self.updata_aunt_order(result2, timestamp)
         return result1, n
-
 
     def enlarge_gridshape(self, iter_num):
         """

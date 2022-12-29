@@ -25,7 +25,7 @@ def generate_constrain_matrix(aunt, order):
     return constrain_matrix
 
 
-def solver(aunt, order, timestamp, *args):
+def solver(aunt, order, timestamp, status='optimal', *args):
     if args:
         high_quality_aunt_id = args[0]
     else:
@@ -73,4 +73,15 @@ def solver(aunt, order, timestamp, *args):
     prob = cp.Problem(objective, constrains)
     prob.solve(solver=cp.GLPK_MI)
     df = pd.DataFrame(x.value)
-    return prob, df
+    if prob.status == 'optimal':
+        return prob, df
+    else:
+        solver(aunt, order, timestamp, 'infeasible', high_quality_aunt_id)
+
+
+def solver1():
+    pass
+
+
+def solver2():
+    pass
