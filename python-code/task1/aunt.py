@@ -52,10 +52,3 @@ class Aunt:
             id_2 = self.data['avail_time'] <= timestamp
             index = id_1 & id_2
             return self.data[index]
-
-    def extract_info_x(self, x, aunt, order):
-        order_info = np.where(x == 1)[0]
-        aunt_info = np.where(x == 1)[1]
-        info = [[aunt.iloc[aunt_info[i], :].name, order.iloc[order_info[i], :].name] for i in range(len(order_info))]
-        return info
-

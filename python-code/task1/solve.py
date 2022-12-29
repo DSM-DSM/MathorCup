@@ -72,6 +72,5 @@ def solver(aunt, order, timestamp, *args):
     # 4.求解问题
     prob = cp.Problem(objective, constrains)
     prob.solve(solver=cp.GLPK_MI)
-    if prob.status == 'optimal':
-        df = pd.DataFrame(x.value)
-        return prob, df
+    df = pd.DataFrame(x.value)
+    return prob, df

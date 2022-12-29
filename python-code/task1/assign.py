@@ -84,7 +84,8 @@ class Assign(Aunt, Order):
         return obj[id]
 
     def time_solve(self):
-        time_linspace = np.linspace(0, 13, 27)
+        time_max = self.order.serviceStartTimeRange
+        time_linspace = np.linspace(0, time_max, 2 * time_max + 1)
         obj = 0
         n = 0
         for time in time_linspace:
@@ -114,7 +115,7 @@ class Assign(Aunt, Order):
         #         self.cur_order_all_assign = False
         #         self.all_to_program = False
         #         break
-        while order_remain >= 5 and not self.force_to_next_time:
+        while order_remain > 1 and not self.force_to_next_time:
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)
@@ -146,8 +147,6 @@ class Assign(Aunt, Order):
         # 根据时间和阿姨&订单状态选出候选阿姨
         aunt = self.aunt.get_aunt(timestamp)
         order = self.order.get_order(timestamp)
-        # 判断此时是否可以考虑将全部阿姨订单同时加入规划
-        self.check_all_to_program(aunt, order)
         result1 = []
         result2 = pd.DataFrame(columns=['aunt_id', 'order_id'])
         n = 0
@@ -158,24 +157,18 @@ class Assign(Aunt, Order):
                 cur_order = self.get_grid(order, i, j)
                 if cur_aunt.shape[0] > 0 and cur_order.shape[0] > 0:
                     # 排除订单和阿姨两者任一一者为空的情况
-                    if cur_aunt.shape[0] >= cur_order.shape[0]:
-                        # 阿姨数量大于订单数量，则所有订单都能被分配
-                        print('位置坐标(%d,%d)' % (i, j))
-                        print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
-                        # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
-                        if self.use_high_quality:
-                            high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
-                            prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
-                        else:
-                            prob, x = solver(cur_aunt, cur_order, timestamp)
-                        # assign_order.append(cur_order.id.values)
-                        result1.append(prob.value * cur_order.shape[0])
-                        info = self.extract_info(x, cur_aunt, cur_order)
-                        result2 = pd.concat([result2, info])
-                        n += cur_order.shape[0]
-                    elif self.cur_order_all_assign:
-                        # 阿姨数小于订单数，存在订单不饿能被分配
-                        self.cur_order_all_assign = False
+                    print('位置坐标(%d,%d)' % (i, j))
+                    print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
+                    # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
+                    if self.use_high_quality:
+                        high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
+                        prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
+                    else:
+                        prob, x = solver(cur_aunt, cur_order, timestamp)
+                    result1.append(prob.value * cur_order.shape[0])
+                    info = self.extract_info(x, cur_aunt, cur_order)
+                    result2 = pd.concat([result2, info])
+                    n += cur_order.shape[0]
                 elif self.cur_order_all_assign and cur_order.shape[0] > 0:
                     # 阿姨数量大于订单数量分支种订单全部被分配的条件下，存在订单数>0而阿姨数等于0的情况
                     self.cur_order_all_assign = False
@@ -187,16 +180,6 @@ class Assign(Aunt, Order):
         self.updata_aunt_order(result2, timestamp)
         return result1, n
 
-    def check_all_to_program(self, cur_aunt, cur_order):
-        """
-        判断所给定数据是否能够一次性加入求解器
-        :param cur_aunt:
-        :param cur_order:
-        :return:
-        """
-        var_num = cur_aunt.shape[0] * cur_order.shape[0]
-        if self.var_limit > var_num:
-            self.all_to_program = True
 
     def enlarge_gridshape(self, iter_num):
         """
