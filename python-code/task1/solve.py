@@ -70,8 +70,10 @@ def solver(aunt, order, timestamp, n=1, status=True, *args):
     urgent_order = rank[rank <= n].index
     if status:
         for i in range(n_order):
-            if np.sum(constrain_matrix) >= 1 and order.iloc[i, :].name in urgent_order:
+            if np.sum(constrain_matrix, axis=1)[i] >= 1 and order.iloc[i, :].name in urgent_order:
                 constrains += [cp.sum(x, axis=1)[i] == 1]
+            else:
+                constrains += [cp.sum(x, axis=1)[i] <= 1]
     else:
         constrains += [cp.sum(x, axis=1) <= 1]
 
