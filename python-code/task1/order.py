@@ -55,5 +55,6 @@ class Order:
         """
         self.data['available'] = 0
         firstime = self.data.serviceFirstTime.values
-        index = [i <= timestamp for i in firstime]
+        lastime = self.data.serviceLastTime.values
+        index = [firstime[i] <= timestamp <= lastime[i] for i in range(len(firstime))]
         self.data.loc[index, 'available'] = 1

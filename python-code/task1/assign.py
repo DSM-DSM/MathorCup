@@ -209,8 +209,9 @@ class Assign(Aunt, Order):
             dist = math.dist(p1, p2)
             self.aunt.data.loc[aunt_id, 'avail_time'] = timestamp + self.calculate_time(dist) + self.order.data.loc[
                 order_id, 'serviceUnitTime']
-            self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
-                    timestamp + self.calculate_time(dist))
+            # self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
+            #         timestamp + self.calculate_time(dist))
+            self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
             self.order.data.loc[order_id, 'aunt_id'] = aunt_id
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']

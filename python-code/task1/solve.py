@@ -81,6 +81,8 @@ def solver(aunt, order, timestamp, n=1, status=True, *args):
     df = pd.DataFrame(x.value)
     if status:
         if prob.status == 'optimal' and n >= 1:
+            if n > max(rank):
+                return None, 0
             n += 1
             prob_1, df_1 = solver(aunt, order, timestamp, n, True, high_quality_aunt_id)
             if prob_1 == None:
