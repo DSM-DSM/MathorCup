@@ -3,6 +3,7 @@
 # @Author : JinYueYu
 # Description : 
 # Copyright JinYueYu.All Right Reserved.
+import warnings
 import cvxpy as cp
 import numpy as np
 import pandas as pd
@@ -25,7 +26,7 @@ def generate_constrain_matrix(aunt, order):
     return constrain_matrix
 
 
-def solver(aunt, order, timestamp, n=1, *args):
+def solver(aunt, order, timestamp, n=1, status=True, *args):
     if args:
         high_quality_aunt_id = args[0]
     else:
@@ -67,25 +68,33 @@ def solver(aunt, order, timestamp, n=1, *args):
                   cp.sum(x, axis=0) <= 1]
     rank = order.serviceLastTime.rank(method='dense')
     urgent_order = rank[rank <= n].index
-    for i in range(n_order):
-        if np.sum(constrain_matrix) >= 1 and order.iloc[i, :].name in urgent_order:
-            constrains += [cp.sum(x, axis=1)[i] == 1]
+    if status:
+        for i in range(n_order):
+            if np.sum(constrain_matrix) >= 1 and order.iloc[i, :].name in urgent_order:
+                constrains += [cp.sum(x, axis=1)[i] == 1]
+    else:
+        constrains += [cp.sum(x, axis=1) <= 1]
 
     # 4.求解问题
     prob = cp.Problem(objective, constrains)
     prob.solve(solver=cp.GLPK_MI)
     df = pd.DataFrame(x.value)
-    if prob.status == 'optimal' and n >= 1:
-        n += 1
-        prob_1, df_1 = solver(aunt, order, timestamp, n, high_quality_aunt_id)
-        if prob_1 == None:
-            return prob, df
-        else:
-            if prob_1.value > prob.value:
-                return prob_1, df_1
-            else:
+    if status:
+        if prob.status == 'optimal' and n >= 1:
+            n += 1
+            prob_1, df_1 = solver(aunt, order, timestamp, n, True, high_quality_aunt_id)
+            if prob_1 == None:
                 return prob, df
-    if prob.status == 'infeasible' and n > 1:
-        return None, 0
-    if prob.status == 'infeasible' and n == 1:
-        raise '仅考虑继续分配的订单仍不能找到可行解。'
+            else:
+                if prob_1.value > prob.value:
+                    return prob_1, df_1
+                else:
+                    return prob, df
+        if prob.status == 'infeasible' and n > 1:
+            return None, 0
+        if prob.status == 'infeasible' and n == 1:
+            warnings.warn('仅考虑继续分配的订单仍不能找到可行解。')
+            prob_1, df_1 = solver(aunt, order, timestamp, n, False, high_quality_aunt_id)
+            return prob_1, df_1
+    else:
+        return prob, df
