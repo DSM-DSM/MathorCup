@@ -55,6 +55,8 @@ class Order:
         """
         self.data['available'] = 0
         firstime = self.data.serviceFirstTime.values
-        lastime = self.data.serviceLastTime.values
-        index = [firstime[i] <= timestamp <= lastime[i] for i in range(len(firstime))]
+        lastime = self.data.serviceLastTime.values + firstime
+        index1 = np.array([i <= timestamp for i in firstime])
+        index2 = np.array([i >= timestamp for i in lastime])
+        index = index1 & index2
         self.data.loc[index, 'available'] = 1
