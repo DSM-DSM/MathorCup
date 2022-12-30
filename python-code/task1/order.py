@@ -21,6 +21,8 @@ class Order:
         self.data['aunt_id'] = 99999999
         self.data['serviceStartTime'] = 99999999
         self.serviceStartTimeRange = int(max(data['serviceFirstTime']) - min(data['serviceFirstTime']))
+        self.TimeRange = self.serviceStartTimeRange + int(
+            max(data[data['serviceFirstTime'] == max(data['serviceFirstTime'])].serviceLastTime))
 
     def get_order(self, timestamp):
         """

@@ -84,7 +84,7 @@ class Assign(Aunt, Order):
         return obj[id]
 
     def time_solve(self):
-        time_max = self.order.serviceStartTimeRange
+        time_max = self.order.TimeRange
         time_linspace = np.linspace(0, time_max, 2 * time_max + 1)
         obj = 0
         n = 0
@@ -107,14 +107,6 @@ class Assign(Aunt, Order):
         n_final = 0
         iter_num = 0
         order_remain = np.inf
-        # for iter_num in range(self.max_grid_iter):
-        #     result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
-        #     obj_final += sum(result1)
-        #     n_final += n
-        #     if self.cur_order_all_assign:
-        #         self.cur_order_all_assign = False
-        #         self.all_to_program = False
-        #         break
         while order_remain > 1 and not self.force_to_next_time:
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
@@ -162,7 +154,7 @@ class Assign(Aunt, Order):
                     # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
                     if self.use_high_quality:
                         high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
-                        prob, x = solver(cur_aunt, cur_order, timestamp,high_quality_aunt_id)
+                        prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
                     else:
                         prob, x = solver(cur_aunt, cur_order, timestamp)
                     result1.append(prob.value * cur_order.shape[0])

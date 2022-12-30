@@ -19,8 +19,8 @@ import datetime
 
 def main():
     start = datetime.datetime.now()
-    df_aunt = pd.read_excel('../../data/aunt.xlsx', index_col='id')
-    df_order = pd.read_excel('../../data/order.xlsx', index_col='id')
+    df_aunt = pd.read_excel('../../data/aunt.xlsx', index_col='id')[:20]
+    df_order = pd.read_excel('../../data/order.xlsx', index_col='id')[:50]
     aunt = Aunt(df_aunt)
     order = Order(df_order)
     shape = (1, 1)
@@ -30,8 +30,8 @@ def main():
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    df_aunt.to_excel(f'../../data/aunt1.1{shape}.xlsx')
-    df_order.to_excel(f'../../data/order1.1{shape}.xlsx')
+    df_aunt.to_excel(f'../../data/aunt1.2{shape}.xlsx')
+    df_order.to_excel(f'../../data/order1.2{shape}.xlsx')
 
 
 if __name__ == '__main__':
