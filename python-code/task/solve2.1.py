@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-            
-# @Time : 2022/12/31 21:45
+# @Time : 2022/12/30 21:42
 # @Author : JinYueYu
 # Description : 
 # Copyright JinYueYu.All Right Reserved.
@@ -9,20 +9,19 @@ from aunt import Aunt
 from order import Order
 import datetime
 
-
 #  high_quality_aunt    1                   0               time
 #      (5 ,5 ) ******************* *******************  ----------------------
 #      (3 ,3 ) ******************* *******************  ----------------------
 #      (1 ,1 ) ******************* *******************  0:21:57.004160 Seconds
-#      (2 ,2 ) ******************* *******************  0:02:35.571337 Seconds
+#      (2 ,2 ) ******************* 0.64411508327901430  0:04:25.790686 Seconds
 
 
 def main():
     start = datetime.datetime.now()
     df_aunt = pd.read_excel('../../data/aunt.xlsx', index_col='id')
     df_order = pd.read_excel('../../data/order.xlsx', index_col='id')
-    df_aunt = df_aunt.sort_index().head(20)
-    df_order = df_order.sort_index().head(50)
+    df_aunt = df_aunt.sort_index()
+    df_order = df_order.sort_index()
     aunt = Aunt(df_aunt)
     order = Order(df_order)
     shape = (1, 1)

@@ -47,16 +47,17 @@ class Order:
         index = [i in order_id for i in id]
         self.data.loc[index, 'assign_status'] = 1
 
-    def updata_order_available(self, timestamp):
+    def updata_order_available(self, timestamp, pressing_order):
         """
 
+        :param pressing_order: 压单的时间约束
         :param timestamp:
         :return:
         """
         self.data['available'] = 0
         firstime = self.data.serviceFirstTime.values
         lastime = self.data.serviceLastTime.values + firstime
-        index1 = np.array([i <= timestamp for i in firstime])
+        index1 = np.array([i <= (timestamp + pressing_order) for i in firstime])
         index2 = np.array([i >= timestamp for i in lastime])
         index = index1 & index2
         self.data.loc[index, 'available'] = 1
