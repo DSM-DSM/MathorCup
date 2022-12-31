@@ -27,9 +27,8 @@ def main():
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    assign.plot_order_aunt_route()
-    # df_aunt.to_excel(f'../../data/1.2/aunt{shape}.xlsx')
-    # df_order.to_excel(f'../../data/1.2/order{shape}.xlsx')
+    df_aunt.to_excel(f'../../data/1.2/aunt{shape}.xlsx')
+    df_order.to_excel(f'../../data/1.2/order{shape}.xlsx')
 
 
 if __name__ == '__main__':
