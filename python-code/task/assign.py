@@ -16,8 +16,8 @@ from adjustText import adjust_text
 # 防止plt汉字乱码
 mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
-plt.rcParams['savefig.dpi'] = 300  # 图片像素
-plt.rcParams['figure.dpi'] = 300  # 分辨率
+plt.rcParams['savefig.dpi'] = 300
+plt.rcParams['figure.dpi'] = 300
 
 
 class Assign(Aunt, Order):
@@ -40,6 +40,7 @@ class Assign(Aunt, Order):
         self.force_to_next_time = False
         self.use_high_quality = False
         self.pressing_order = 0
+
     def get_grid_info(self):
         try:
             self.x_max = max(self.aunt.data['x_od'].max(), self.order.data['x_od'].max())
@@ -97,7 +98,7 @@ class Assign(Aunt, Order):
         n = 0
         result22 = pd.DataFrame()
         for time in time_linspace:
-            self.order.updata_order_available(time)
+            self.order.updata_order_available(time, self.pressing_order)
             self.aunt.updata_aunt_assign_status(time)
             print(f"*************第{time}时刻*************")
             obj_t, n_t = self.grid_iter_solve(time)
@@ -220,9 +221,9 @@ class Assign(Aunt, Order):
             dist = math.dist(p1, p2)
             self.aunt.data.loc[aunt_id, 'avail_time'] = timestamp + self.calculate_time(dist) + self.order.data.loc[
                 order_id, 'serviceUnitTime']
-            # self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
-            #         timestamp + self.calculate_time(dist))
-            self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
+            self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
+                    timestamp + self.calculate_time(dist))
+            # self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
             self.order.data.loc[order_id, 'aunt_id'] = aunt_id
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']

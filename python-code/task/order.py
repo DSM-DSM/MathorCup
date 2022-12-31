@@ -18,11 +18,13 @@ class Order:
         self.data = data
         self.n = data.shape[0]
         self.data['assign_status'] = 0
-        self.data['aunt_id'] = 99999999
-        self.data['serviceStartTime'] = 99999999
+        self.data['aunt_id'] = -1
+        self.data['serviceStartTime'] = -1
         self.serviceStartTimeRange = int(max(data['serviceFirstTime']) - min(data['serviceFirstTime']))
         self.TimeRange = self.serviceStartTimeRange + int(
             max(data[data['serviceFirstTime'] == max(data['serviceFirstTime'])].serviceLastTime))
+        self.data['retainable'] = 1
+        self.data['current_time'] = 0
 
     def get_order(self, timestamp):
         """
@@ -61,3 +63,13 @@ class Order:
         index2 = np.array([i >= timestamp for i in lastime])
         index = index1 & index2
         self.data.loc[index, 'available'] = 1
+
+    def if_retainable(self, timestamp):
+        """
+
+        :param timestamp:
+        :return:
+        """
+        self.data['current_time'] = timestamp
+        index = self.data['aunt_id'] != -1
+        self.data.loc[index, 'retainable'] = 0
