@@ -6,11 +6,18 @@
 import math
 import numpy as np
 import pandas as pd
-
 from order import Order
 from aunt import Aunt
 from solve import solver
-from scipy.spatial import distance_matrix
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from adjustText import adjust_text
+
+# 防止plt汉字乱码
+mpl.rcParams['font.sans-serif'] = ['simhei']
+mpl.rcParams['axes.unicode_minus'] = False
+plt.rcParams['savefig.dpi'] = 300  # 图片像素
+plt.rcParams['figure.dpi'] = 300  # 分辨率
 
 
 class Assign(Aunt, Order):
@@ -32,6 +39,7 @@ class Assign(Aunt, Order):
         self.var_limit = 1000
         self.force_to_next_time = False
         self.use_high_quality = False
+        self.pressing_order = 0
 
     def get_grid_info(self):
         try:
@@ -88,13 +96,17 @@ class Assign(Aunt, Order):
         time_linspace = np.linspace(0, time_max, 2 * time_max + 1)
         obj = 0
         n = 0
+        result22 = pd.DataFrame()
         for time in time_linspace:
-            self.order.updata_order_available(time)
+            self.order.updata_order_available(time, self.pressing_order)
             self.aunt.updata_aunt_assign_status(time)
             print(f"*************第{time}时刻*************")
             obj_t, n_t = self.grid_iter_solve(time)
             obj += obj_t
             n += n_t
+            self.order.if_retainable(time)
+            result22 = pd.concat([result22, self.order.data])
+        result22.to_excel('../../data/result/result22.xlsx')
         return obj, n
 
     def grid_iter_solve(self, timestamp):
@@ -209,9 +221,9 @@ class Assign(Aunt, Order):
             dist = math.dist(p1, p2)
             self.aunt.data.loc[aunt_id, 'avail_time'] = timestamp + self.calculate_time(dist) + self.order.data.loc[
                 order_id, 'serviceUnitTime']
-            # self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
-            #         timestamp + self.calculate_time(dist))
-            self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
+            self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
+                    timestamp + self.calculate_time(dist))
+            # self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
             self.order.data.loc[order_id, 'aunt_id'] = aunt_id
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']
@@ -250,3 +262,50 @@ class Assign(Aunt, Order):
         df['aunt_id'] = aunt
         df['order_id'] = order
         return df
+
+    def plot_order_aunt_route(self):
+        plt.figure(figsize=(24, 8))
+        texts = []
+        # 绘制Order信息
+        for i in range(self.order.n):
+            x = self.order.data.iloc[i, :].x_od
+            y = self.order.data.iloc[i, :].y_od
+            firstime = self.order.data.iloc[i, :].serviceFirstTime
+            lastime = self.order.data.iloc[i, :].serviceLastTime + firstime
+            order_id = self.order.data.iloc[i, :].name
+            plt.scatter(x, y, s=400, c='red', marker='*', alpha=0.9)
+            text_info = f'Order_id:{order_id},' + '[' + str(firstime) + ',' + str(lastime) + ']'
+            texts.append(plt.text(x, y, text_info))
+
+        # 绘制Aunt信息
+        c_list = ['b', 'c', 'g', 'k', 'm', 'r', 'y', '#F0E68C', '#00FF7F', '#F5DEB3',
+                  'b', 'c', 'g', 'k', 'm', 'r', 'y', '#F0E68C', '#00FF7F', '#F5DEB3']
+        for j in range(self.aunt.n):
+            aunt_x_od = self.aunt.data.iloc[j, :].x_od
+            aunt_y_od = self.aunt.data.iloc[j, :].y_od
+            aunt_id = self.aunt.data.iloc[j, :].name
+            get_order_num = len(self.aunt.data.iloc[j, :].order)
+            order_list = self.aunt.data.iloc[j, :].order
+            for k in range(get_order_num):
+                if k == 0:
+                    plt.scatter(aunt_x_od, aunt_y_od, s=200, c=c_list[j], marker='v', label='Aunt')
+                    texts.append(plt.text(aunt_x_od, aunt_y_od, f'Aunt_id:{aunt_id}'))
+                order_id = order_list[k]
+                x, y, time_info = self.get_aunt_history_info(order_id)
+                plt.scatter(x, y, s=40, c='green', marker='^')
+                texts.append(plt.text(x, y, time_info))
+                plt.plot([aunt_x_od, x], [aunt_y_od, y], color=c_list[j], linestyle=':', linewidth=1)
+                aunt_x_od = x
+                aunt_y_od = y
+        adjust_text(texts, only_move={'text': 'y'})
+        plt.title('Aunt-Order路线图')
+        plt.xlim(self.x_min, self.x_max)
+        plt.ylim(self.y_min, self.y_max)
+        plt.savefig(f'../../pic/Aunt-Order路线图.png')
+        plt.show()
+
+    def get_aunt_history_info(self, order_id):
+        cur_x = self.order.data.loc[order_id, 'x_od']
+        cur_y = self.order.data.loc[order_id, 'y_od']
+        serviceStartTime = 'arrive:' + str(self.order.data.loc[order_id, 'serviceStartTime'])
+        return cur_x, cur_y, serviceStartTime

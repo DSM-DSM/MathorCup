@@ -22,11 +22,14 @@ def main():
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     obj_final, n_final = assign.time_solve()
+    # Score:0.4613851199953276
+    # Time:0:00:01.690947 Seconds
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    df_aunt.to_excel(f'../../data/1.2/aunt{shape}.xlsx')
-    df_order.to_excel(f'../../data/1.2/order{shape}.xlsx')
+    assign.plot_order_aunt_route()
+    # df_aunt.to_excel(f'../../data/1.2/aunt{shape}.xlsx')
+    # df_order.to_excel(f'../../data/1.2/order{shape}.xlsx')
 
 
 if __name__ == '__main__':
