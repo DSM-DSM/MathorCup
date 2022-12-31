@@ -6,11 +6,15 @@
 import math
 import numpy as np
 import pandas as pd
-
 from order import Order
 from aunt import Aunt
 from solve import solver
-from scipy.spatial import distance_matrix
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+# 防止plt汉字乱码
+mpl.rcParams['font.sans-serif'] = ['simhei']
+mpl.rcParams['axes.unicode_minus'] = False
 
 
 class Assign(Aunt, Order):
@@ -32,6 +36,7 @@ class Assign(Aunt, Order):
         self.var_limit = 1000
         self.force_to_next_time = False
         self.use_high_quality = False
+        self.pressing_order = 0
 
     def get_grid_info(self):
         try:
@@ -89,7 +94,7 @@ class Assign(Aunt, Order):
         obj = 0
         n = 0
         for time in time_linspace:
-            self.order.updata_order_available(time)
+            self.order.updata_order_available(time, self.pressing_order)
             self.aunt.updata_aunt_assign_status(time)
             print(f"*************第{time}时刻*************")
             obj_t, n_t = self.grid_iter_solve(time)
@@ -250,3 +255,17 @@ class Assign(Aunt, Order):
         df['aunt_id'] = aunt
         df['order_id'] = order
         return df
+
+    def plot_order_info(self):
+        plt.figure()
+        # 打开交互模式
+        plt.ion()
+        plt.clf()
+        for i in range(self.order.n):
+            x = self.order.data.iloc[i, 'x_od']
+            y = self.order.data.iloc[i, 'y_od']
+            plt.scatter(x, y, marker='o', alpha=0.5)
+
+        plt.xlim(self.x_min, self.x_max)
+        plt.ylim(self.y_min, self.y_max)
+        pass
