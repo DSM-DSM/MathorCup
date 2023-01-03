@@ -22,8 +22,8 @@ def main():
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     obj_final, n_final = assign.time_solve()
-    # Score: 0.4613851199953276
-    # Time : 0:00:02.061127 Seconds
+    # Score: 0.43467486935191785
+    # Time : 0:00:02.616028 Seconds
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))

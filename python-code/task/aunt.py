@@ -42,13 +42,8 @@ class Aunt:
         :param timestamp:
         :return:
         """
-        if timestamp == 0:
-            id_1 = self.data['assign_status'] == 0
-            id_2 = self.data['avail_time'] <= timestamp
-            index = id_1 & id_2
-            return self.data[index]
-        else:
-            id_1 = self.data['assign_status'] == 0
-            id_2 = self.data['avail_time'] <= timestamp
-            index = id_1 & id_2
-            return self.data[index]
+        id_1 = self.data['assign_status'] == 0
+        id_2 = self.data['avail_time'] <= timestamp
+        index = id_1 & id_2
+        return self.data[index]
+

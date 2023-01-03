@@ -9,11 +9,12 @@ from aunt import Aunt
 from order import Order
 import datetime
 
+
 #  high_quality_aunt    1                   0               time
 #      (5 ,5 ) ******************* *******************  ----------------------
 #      (3 ,3 ) ******************* *******************  ----------------------
 #      (1 ,1 ) ******************* 0.64883960004732810  1:04:46.531682 Seconds
-#      (2 ,2 ) ******************* 0.64411508327901430  0:03:44.595164 Seconds
+#      (2 ,2 ) ******************* 0.58822040543734230  0:02:59.163243 Seconds
 
 
 def main():
@@ -28,6 +29,7 @@ def main():
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     assign.pressing_order = 2
+    assign.enlarge_time_axis = 3
     obj_final, n_final = assign.time_solve()
     print(obj_final / n_final)
     end = datetime.datetime.now()

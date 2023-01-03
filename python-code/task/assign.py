@@ -13,12 +13,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from adjustText import adjust_text
 
-# 防止plt汉字乱码
-mpl.rcParams['font.sans-serif'] = ['simhei']
-mpl.rcParams['axes.unicode_minus'] = False
-plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['figure.dpi'] = 300
-
 
 class Assign(Aunt, Order):
     def __init__(self, aunt, order, gridshape):
@@ -36,10 +30,15 @@ class Assign(Aunt, Order):
         self.get_grid_info()
         self.grid_iter(self.gridshape)
         self.all_to_program = False
-        self.var_limit = 1000
         self.force_to_next_time = False
         self.use_high_quality = False
         self.pressing_order = 0
+        self.enlarge_time_axis = 0
+
+    def online_order_assign(self):
+        if self.enlarge_time_axis != 0:
+            self.aunt.data['avail_time'] = -self.enlarge_time_axis
+            self.order.data['current_time'] = self.order.data['current_time'] - 3600 * self.enlarge_time_axis
 
     def get_grid_info(self):
         try:
@@ -92,8 +91,10 @@ class Assign(Aunt, Order):
         return obj[id]
 
     def time_solve(self):
+        self.online_order_assign()
         time_max = self.order.TimeRange
-        time_linspace = np.linspace(0, time_max, 2 * time_max + 1)
+        time_min = 0 - self.enlarge_time_axis
+        time_linspace = np.linspace(time_min, time_max, 2 * (time_max - time_min) + 1)
         obj = 0
         n = 0
         result22 = pd.DataFrame()
@@ -264,6 +265,12 @@ class Assign(Aunt, Order):
         return df
 
     def plot_order_aunt_route(self):
+        # 防止plt汉字乱码
+        mpl.rcParams['font.sans-serif'] = ['simhei']
+        mpl.rcParams['axes.unicode_minus'] = False
+        plt.rcParams['savefig.dpi'] = 300
+        plt.rcParams['figure.dpi'] = 300
+
         plt.figure(figsize=(24, 8))
         texts = []
         # 绘制Order信息
@@ -309,4 +316,3 @@ class Assign(Aunt, Order):
         cur_y = self.order.data.loc[order_id, 'y_od']
         serviceStartTime = 'arrive:' + str(self.order.data.loc[order_id, 'serviceStartTime'])
         return cur_x, cur_y, serviceStartTime
-

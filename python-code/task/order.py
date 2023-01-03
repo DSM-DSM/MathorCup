@@ -24,7 +24,7 @@ class Order:
         self.TimeRange = self.serviceStartTimeRange + int(
             max(data[data['serviceFirstTime'] == max(data['serviceFirstTime'])].serviceLastTime))
         self.data['retainable'] = 1
-        self.data['current_time'] = 0
+        self.data['current_time'] = 1662768000
 
     def get_order(self, timestamp):
         """
@@ -32,16 +32,10 @@ class Order:
         :param timestamp:
         :return:
         """
-        if timestamp == 0:
-            id_1 = self.data['assign_status'] == 0
-            id_2 = self.data['available'] == 1
-            index = id_1 & id_2
-            return self.data[index]
-        else:
-            id_1 = self.data['assign_status'] == 0
-            id_2 = self.data['available'] == 1
-            index = id_1 & id_2
-            return self.data[index]
+        id_1 = self.data['assign_status'] == 0
+        id_2 = self.data['available'] == 1
+        index = id_1 & id_2
+        return self.data[index]
 
     def update_order_assign_status(self, aunt_order_indexer):
         order_id = aunt_order_indexer.order_id.values

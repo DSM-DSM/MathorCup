@@ -3,6 +3,7 @@
 # @Author : JinYueYu
 # Description : 
 # Copyright JinYueYu.All Right Reserved.
+import math
 import warnings
 import cvxpy as cp
 import numpy as np
@@ -26,6 +27,19 @@ def generate_constrain_matrix(aunt, order):
     return constrain_matrix
 
 
+def generate_travel_time_matrix(aunt, dist, timestamp):
+    first_order = aunt['first'].to_numpy()
+    avail_time = aunt['avail_time'].to_numpy()
+    time_travel_matrix = np.floor(dist / 15) + 0.5
+    for i in range(dist.shape[0]):
+        for j in range(dist.shape[1]):
+            if first_order[j] == 1:
+                time_travel_matrix[:, j] = 0.5
+                break
+            time_travel_matrix[i, j] += (timestamp - avail_time[i])
+    return time_travel_matrix
+
+
 def solver(aunt, order, timestamp, n=1, status=True, *args):
     if args:
         high_quality_aunt_id = args[0]
@@ -43,31 +57,27 @@ def solver(aunt, order, timestamp, n=1, status=True, *args):
 
     # 2.创建需要的矩阵和表达式
     # A代表服务分,B代表通行距离,C代表阿姨的服务间隔时间
-    A = x @ aunt['serviceScore'].values
-    B = cp.multiply(dist, x)
-    time_step = aunt['first'].to_numpy()
-    avail_time = aunt['avail_time'].to_numpy()
+    A = cp.sum(x @ aunt['serviceScore'].values)
+    B = cp.sum(cp.multiply(dist, x))
+
     if_high_quality = np.zeros((n_aunt,), dtype=int)
+    rank = order.serviceLastTime.rank(method='dense')
+    urgent_order = rank[rank <= n].index
+    travel_time_matrix = generate_travel_time_matrix(aunt, dist, timestamp)
     for i in range(n_aunt):
-        if time_step[i] == 1:
-            # 第i个阿姨是第一次分配到订单
-            time_step[i] = 0.5
-        if time_step[i] == 0:
-            time_step[i] = timestamp - avail_time[i]
         if aunt.iloc[i, :].name in high_quality_aunt_id:
             if_high_quality[i] = 1
-    C = cp.sum(x, axis=0) @ time_step
+    C = cp.sum(cp.multiply(x, travel_time_matrix))
 
     # 3.设置目标函数和约束
-    obj = (cp.sum(A) * alpha - beta * cp.sum(B) - C * gamma) / n_order
+    obj = (A * alpha - beta * B - gamma * C) / cp.sum(x)
     objective = cp.Maximize(obj)
     constrain_matrix = generate_constrain_matrix(aunt, order)
     # axis = 1 / 0 <==> 按行/列求和
     constrains = [cp.sum(x, axis=0) <= if_high_quality,
                   x <= constrain_matrix,
                   cp.sum(x, axis=0) <= 1]
-    rank = order.serviceLastTime.rank(method='dense')
-    urgent_order = rank[rank <= n].index
+
     if status:
         for i in range(n_order):
             if np.sum(constrain_matrix, axis=1)[i] >= 1 and order.iloc[i, :].name in urgent_order:
@@ -79,7 +89,7 @@ def solver(aunt, order, timestamp, n=1, status=True, *args):
 
     # 4.求解问题
     prob = cp.Problem(objective, constrains)
-    prob.solve(solver=cp.GLPK_MI)
+    prob.solve(solver=cp.GLPK_MI, qcp=True)
     df = pd.DataFrame(x.value)
     if status:
         if prob.status == 'optimal' and n >= 1:
