@@ -13,8 +13,8 @@ import datetime
 #  high_quality_aunt    1                   0               time
 #      (5 ,5 ) ******************* *******************  ----------------------
 #      (3 ,3 ) ******************* *******************  ----------------------
-#      (1 ,1 ) ******************* 0.64883960004732810  1:04:46.531682 Seconds
-#      (2 ,2 ) ******************* 0.58822040543734230  0:02:59.163243 Seconds
+#      (1 ,1 ) ******************* 0.61079308096349900  0:36:11.617671 Seconds
+#      (2 ,2 ) ******************* 0.59394942729087370  0:02:55.411861 Seconds
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     df_order = df_order.sort_index()
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (1, 1)
+    shape = (2, 2)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     assign.pressing_order = 2

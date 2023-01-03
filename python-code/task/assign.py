@@ -4,6 +4,8 @@
 # Description : 
 # Copyright JinYueYu.All Right Reserved.
 import math
+import warnings
+
 import numpy as np
 import pandas as pd
 from order import Order
@@ -35,11 +37,16 @@ class Assign(Aunt, Order):
         self.pressing_order = 0
         self.enlarge_time_axis = 0
         self.future_aunt = 0
+        self.solver_mode = {'mode': 'off-line', 'start_time_axis': self.enlarge_time_axis}
 
     def online_order_assign(self):
         if self.enlarge_time_axis != 0:
             self.aunt.data['avail_time'] = -self.enlarge_time_axis
             self.order.data['current_time'] = self.order.data['current_time'] - 3600 * self.enlarge_time_axis
+            self.solver_mode['mode'] = 'on-line'
+            self.solver_mode['start_time_axis'] = self.enlarge_time_axis
+        if self.enlarge_time_axis < self.pressing_order:
+            raise '错误，enlarge_time_axis必须大于pressing_order！'
 
     def get_grid_info(self):
         try:
@@ -125,7 +132,7 @@ class Assign(Aunt, Order):
         n_final = 0
         iter_num = 0
         order_remain = np.inf
-        while order_remain > 1 and not self.force_to_next_time:
+        while order_remain > 0 and not self.force_to_next_time:
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)
@@ -133,7 +140,9 @@ class Assign(Aunt, Order):
             iter_num += 1
             order_remain = self.order.get_order(timestamp).shape[0]
         if self.force_to_next_time:
-            print('**********强制进入下一个时刻**********')
+            print('\n**********强制进入下一个时刻**********')
+            print(self.order.get_order(timestamp).index)
+            print(f'****order_remain:{order_remain}*****\n')
         self.cur_order_all_assign = False
         self.all_to_program = False
         self.force_to_next_time = False
@@ -167,14 +176,15 @@ class Assign(Aunt, Order):
                 cur_order = self.get_grid(order, i, j)
                 if cur_aunt.shape[0] > 0 and cur_order.shape[0] > 0:
                     # 排除订单和阿姨两者任一一者为空的情况
-                    print('位置坐标(%d,%d)' % (i, j))
+                    print('网格区域：(%d,%d)' % (i, j))
                     print('Order的个数：%d,Aunt的个数：%d' % (cur_order.shape[0], cur_aunt.shape[0]))
                     # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
                     if self.use_high_quality:
                         high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
-                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
+                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, self.solver_mode,
+                                                           high_quality_aunt_id)
                     else:
-                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp)
+                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, self.solver_mode)
                     # 因为solver的求解情况有多种（仅考虑紧急订单~考虑当前时间段所有订单），因此需要明确prob.value对应分批的订单的个数
                     if prob.value >= 1:
                         # 可能存在当前阿姨无法完全分配掉当前时间的紧急订单情况
@@ -240,12 +250,8 @@ class Assign(Aunt, Order):
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']
 
     def calculate_time(self, dist):
-        t = dist / self.aunt.velocity
-        k = t // 0.5
-        if k * 0.5 == t:
-            return t
-        else:
-            return (k + 1) * 0.5
+        k = math.floor(dist / self.aunt.velocity / 2)
+        return (k + 1) * 0.5
 
     def choose_high_quality_aunt(self, aunt, order):
         if self.assign_has_huge_diff(aunt, order):

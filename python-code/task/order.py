@@ -64,6 +64,6 @@ class Order:
         :param timestamp:
         :return:
         """
-        self.data['current_time'] = timestamp
+        self.data['current_time'] += 3600 * timestamp
         index = self.data['aunt_id'] != -1
         self.data.loc[index, 'retainable'] = 0

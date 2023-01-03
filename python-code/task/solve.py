@@ -11,26 +11,37 @@ import pandas as pd
 from scipy.spatial import distance_matrix
 
 
-def generate_constrain_matrix(aunt, order):
+def generate_constrain_matrix(aunt, order, timestamp, solver_mode):
     n_order = order.shape[0]
     n_aunt = aunt.shape[0]
     dist = distance_matrix(order.loc[:, ['x', 'y']],
                            aunt.loc[:, ['x', 'y']])
     constrain_matrix = np.zeros((n_order, n_aunt), dtype=int)
     for i in range(n_order):
-        time_i = order.iloc[0, :].serviceLastTime
+        lastime = order.iloc[i, :].serviceLastTime
+        firstime = order.iloc[i, :].serviceFirstTime
         for j in range(n_aunt):
-            if dist[i, j] > time_i * 15:
-                constrain_matrix[i, j] = 0
+            first = aunt.iloc[j, :]['first']
+            if first == 1:
+                if solver_mode['mode'] == 'off-line':
+                    constrain_matrix[i, j] = 1
+                else:
+                    if dist[i, j] > (lastime + firstime + solver_mode['start_time_axis'] - timestamp) * 15:
+                        constrain_matrix[i, j] = 0
+                    else:
+                        constrain_matrix[i, j] = 1
             else:
-                constrain_matrix[i, j] = 1
+                if dist[i, j] > (lastime + firstime - timestamp) * 15:
+                    constrain_matrix[i, j] = 0
+                else:
+                    constrain_matrix[i, j] = 1
     return constrain_matrix
 
 
 def generate_travel_time_matrix(aunt, dist, timestamp):
     first_order = aunt['first'].to_numpy()
     avail_time = aunt['avail_time'].to_numpy()
-    time_travel_matrix = np.floor(dist / 15) + 0.5
+    time_travel_matrix = np.floor(dist / 7.5) * 0.5 + 0.5
     for i in range(dist.shape[0]):
         for j in range(dist.shape[1]):
             if first_order[j] == 1:
@@ -50,7 +61,14 @@ def get_a_b_c(aunt, timestamp, x, dist):
     return A, B, C
 
 
-def solver(aunt, order, timestamp, n=1, status=True, *args):
+def get_urgent_order(order, timestamp, n):
+    urgent = (order.serviceLastTime + order.serviceFirstTime - timestamp)
+    urgent_rank = urgent.rank(method='dense')
+    urgent_order_index = urgent_rank[urgent_rank <= n].index
+    return urgent_order_index, urgent_rank
+
+
+def solver(aunt, order, timestamp, solver_mode, n=1, status=True, *args):
     if args:
         high_quality_aunt_id = args[0]
     else:
@@ -68,14 +86,13 @@ def solver(aunt, order, timestamp, n=1, status=True, *args):
 
     # 2.定义约束
     if_high_quality = np.zeros((n_aunt,), dtype=int)
-    rank = order.serviceLastTime.rank(method='dense')
-    urgent_order = rank[rank <= n].index
+    urgent_order, rank = get_urgent_order(order, timestamp, n)
     # 2.1设置优质阿姨
     for i in range(n_aunt):
         if aunt.iloc[i, :].name in high_quality_aunt_id:
             if_high_quality[i] = 1
     # 2.2限制阿姨不能接自己无法及时到达的订单
-    constrain_matrix = generate_constrain_matrix(aunt, order)
+    constrain_matrix = generate_constrain_matrix(aunt, order, timestamp, solver_mode)
     # axis = 1 / 0 <==> 按行/列求和
     constrains = [cp.sum(x, axis=0) <= if_high_quality,
                   x <= constrain_matrix,
