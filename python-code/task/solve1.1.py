@@ -13,8 +13,8 @@ import datetime
 #  high_quality_aunt    1                   0               time
 #      (5 ,5 ) ******************* *******************  ----------------------
 #      (3 ,3 ) ******************* *******************  ----------------------
-#      (1 ,1 ) ******************* 0.62092272460981150  0:17:53.143772 Seconds
-#      (2 ,2 ) ******************* 0.59062901057753470  0:02:21.376450 Seconds
+#      (1 ,1 ) ******************* 0.61132498711549620  0:32:14.671651 Seconds
+#      (2 ,2 ) ******************* 0.59245084094832290  0:03:29.706386 Seconds
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     df_order = pd.read_excel('../../data/order.xlsx', index_col='id')
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (1, 1)
+    shape = (2, 2)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     obj_final, n_final = assign.time_solve()

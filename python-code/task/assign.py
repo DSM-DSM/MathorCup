@@ -13,12 +13,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from adjustText import adjust_text
 
-# 防止plt汉字乱码
-mpl.rcParams['font.sans-serif'] = ['simhei']
-mpl.rcParams['axes.unicode_minus'] = False
-plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['figure.dpi'] = 300
-
 
 class Assign(Aunt, Order):
     def __init__(self, aunt, order, gridshape):
@@ -36,10 +30,16 @@ class Assign(Aunt, Order):
         self.get_grid_info()
         self.grid_iter(self.gridshape)
         self.all_to_program = False
-        self.var_limit = 1000
         self.force_to_next_time = False
         self.use_high_quality = False
         self.pressing_order = 0
+        self.enlarge_time_axis = 0
+        self.future_aunt = 0
+
+    def online_order_assign(self):
+        if self.enlarge_time_axis != 0:
+            self.aunt.data['avail_time'] = -self.enlarge_time_axis
+            self.order.data['current_time'] = self.order.data['current_time'] - 3600 * self.enlarge_time_axis
 
     def get_grid_info(self):
         try:
@@ -92,11 +92,17 @@ class Assign(Aunt, Order):
         return obj[id]
 
     def time_solve(self):
+        self.online_order_assign()
         time_max = self.order.TimeRange
-        time_linspace = np.linspace(0, time_max, 2 * time_max + 1)
+        time_min = 0 - self.enlarge_time_axis
+        time_linspace = np.linspace(time_min, time_max, 2 * (time_max - time_min) + 1)
         obj = 0
         n = 0
         result22 = pd.DataFrame()
+        print("***********当前求解状态:***********\n")
+        print("是否线上派单:" + str(bool(self.pressing_order)) + ';是否考虑当前时间点未来的Aunt:' + str(
+            bool(self.future_aunt)) + '\n')
+        print('考虑' + str(self.pressing_order) + '小时后的Order  考虑' + str(self.future_aunt) + '小时后的Aunt\n')
         for time in time_linspace:
             self.order.updata_order_available(time, self.pressing_order)
             self.aunt.updata_aunt_assign_status(time)
@@ -166,13 +172,18 @@ class Assign(Aunt, Order):
                     # prob是一个cvxpy对象，x是一个pandas对象，是解矩阵
                     if self.use_high_quality:
                         high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
-                        prob, x = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
+                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, high_quality_aunt_id)
                     else:
-                        prob, x = solver(cur_aunt, cur_order, timestamp)
-                    result1.append(prob.value * cur_order.shape[0])
+                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp)
+                    # 因为solver的求解情况有多种（仅考虑紧急订单~考虑当前时间段所有订单），因此需要明确prob.value对应分批的订单的个数
+                    if prob.value >= 1:
+                        # 可能存在当前阿姨无法完全分配掉当前时间的紧急订单情况
+                        result1.append(prob.value)
+                    else:
+                        result1.append(prob.value * assign_order_num)
+                    n += assign_order_num
                     info = self.extract_info(x, cur_aunt, cur_order)
                     result2 = pd.concat([result2, info])
-                    n += cur_order.shape[0]
                 elif self.cur_order_all_assign and cur_order.shape[0] > 0:
                     # 阿姨数量大于订单数量分支种订单全部被分配的条件下，存在订单数>0而阿姨数等于0的情况
                     self.cur_order_all_assign = False
@@ -264,6 +275,12 @@ class Assign(Aunt, Order):
         return df
 
     def plot_order_aunt_route(self):
+        # 防止plt汉字乱码
+        mpl.rcParams['font.sans-serif'] = ['simhei']
+        mpl.rcParams['axes.unicode_minus'] = False
+        plt.rcParams['savefig.dpi'] = 300
+        plt.rcParams['figure.dpi'] = 300
+
         plt.figure(figsize=(24, 8))
         texts = []
         # 绘制Order信息
@@ -309,4 +326,3 @@ class Assign(Aunt, Order):
         cur_y = self.order.data.loc[order_id, 'y_od']
         serviceStartTime = 'arrive:' + str(self.order.data.loc[order_id, 'serviceStartTime'])
         return cur_x, cur_y, serviceStartTime
-
