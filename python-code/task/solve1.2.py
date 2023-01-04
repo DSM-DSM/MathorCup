@@ -18,7 +18,7 @@ def main():
     df_order = df_order.sort_index().head(50)
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (1, 1)
+    shape = (3, 3)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     obj_final, n_final = assign.time_solve()

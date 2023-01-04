@@ -45,8 +45,6 @@ class Assign(Aunt, Order):
             self.order.data['current_time'] = self.order.data['current_time'] - 3600 * self.enlarge_time_axis
             self.solver_mode['mode'] = 'on-line'
             self.solver_mode['start_time_axis'] = self.enlarge_time_axis
-        if self.enlarge_time_axis < self.pressing_order:
-            raise '错误，enlarge_time_axis必须大于pressing_order！'
 
     def get_grid_info(self):
         try:
@@ -140,9 +138,9 @@ class Assign(Aunt, Order):
             iter_num += 1
             order_remain = self.order.get_order(timestamp).shape[0]
         if self.force_to_next_time:
-            print('\n**********强制进入下一个时刻**********')
+            print('\n##########强制进入下一个时刻##########')
             print(self.order.get_order(timestamp).index)
-            print(f'****order_remain:{order_remain}*****\n')
+            print(f'##########order_remain:{order_remain}##########\n')
         self.cur_order_all_assign = False
         self.all_to_program = False
         self.force_to_next_time = False

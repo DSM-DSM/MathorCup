@@ -44,10 +44,9 @@ def generate_travel_time_matrix(aunt, dist, timestamp):
     time_travel_matrix = np.floor(dist / 7.5) * 0.5 + 0.5
     for i in range(dist.shape[0]):
         for j in range(dist.shape[1]):
+            time_travel_matrix[i, j] += (timestamp - avail_time[j])
             if first_order[j] == 1:
-                time_travel_matrix[:, j] = 0.5
-                break
-            time_travel_matrix[i, j] += (timestamp - avail_time[i])
+                time_travel_matrix[i, j] = 0.5
     return time_travel_matrix
 
 
