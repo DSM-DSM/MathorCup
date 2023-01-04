@@ -23,7 +23,7 @@ def main():
     df_order = pd.read_excel('../../data/order.xlsx', index_col='id')
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (2, 2)
+    shape = (3, 3)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     obj_final, n_final = assign.time_solve()
