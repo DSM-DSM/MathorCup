@@ -122,12 +122,13 @@ def solver(aunt, order, timestamp, solver_mode, n=1, status=True, *args):
     df = pd.DataFrame(x.value)
     print(prob.value)
     # 4.递归求解，直至找到当前时间段，当前网格中最优的目标函数值
+    # aunt, order, timestamp, solver_mode, n = 1, status = True, *args
     if status:
         if prob.status == 'optimal' and n >= 1:
             if n > max(rank):
                 return None, 0, 0
             n += 1
-            prob_1, df_1, m_1 = solver(aunt, order, timestamp, n, True, high_quality_aunt_id)
+            prob_1, df_1, m_1 = solver(aunt, order, timestamp, solver_mode, n, True, high_quality_aunt_id)
             if prob_1 == None:
                 return prob, df, np.sum(x.value)
             else:
@@ -139,7 +140,7 @@ def solver(aunt, order, timestamp, solver_mode, n=1, status=True, *args):
             return None, 0, 0
         if prob.status == 'infeasible' and n == 1:
             warnings.warn('仅考虑当前时间段必须被分配的订单却仍不能找到可行解！！！')
-            prob_1, df_1, m_1 = solver(aunt, order, timestamp, n, False, high_quality_aunt_id)
+            prob_1, df_1, m_1 = solver(aunt, order, timestamp, solver_mode, n, False, high_quality_aunt_id)
             return prob_1, df_1, m_1
     else:
         return prob, df, np.sum(x.value)
