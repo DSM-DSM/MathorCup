@@ -18,16 +18,17 @@ def main():
     df_order = df_order.sort_index().head(50)
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (3, 3)
+    shape = (2, 2)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     obj_final, n_final = assign.time_solve()
-    # Score: 0.40544746175427343
-    # Time : 0:00:02.118592 Seconds
+    # Score(1, 1): 0.34368586828980670
+    # Score(2, 2): 0.27031516595365934
+    # Score(3, 3): 0.24790524722290466
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    # assign.plot_order_aunt_route()
+    assign.plot_order_aunt_route()
     df_aunt.to_excel(f'../../data/1.2/aunt{shape}.xlsx')
     df_order.to_excel(f'../../data/1.2/order{shape}.xlsx')
 

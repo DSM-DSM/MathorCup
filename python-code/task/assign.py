@@ -295,7 +295,7 @@ class Assign(Aunt, Order):
             lastime = self.order.data.iloc[i, :].serviceLastTime + firstime
             order_id = self.order.data.iloc[i, :].name
             plt.scatter(x, y, s=400, c='red', marker='*', alpha=0.9)
-            text_info = f'Order_id:{order_id},' + '[' + str(firstime) + ',' + str(lastime) + ']'
+            text_info = f'Order{order_id}' + '[' + str(firstime) + ',' + str(lastime) + ']'
             texts.append(plt.text(x, y, text_info))
 
         # 绘制Aunt信息
@@ -305,12 +305,13 @@ class Assign(Aunt, Order):
             aunt_x_od = self.aunt.data.iloc[j, :].x_od
             aunt_y_od = self.aunt.data.iloc[j, :].y_od
             aunt_id = self.aunt.data.iloc[j, :].name
+            aunt_get_order_list = self.aunt.data.iloc[j, :].order
             get_order_num = len(self.aunt.data.iloc[j, :].order)
             order_list = self.aunt.data.iloc[j, :].order
             for k in range(get_order_num):
                 if k == 0:
-                    plt.scatter(aunt_x_od, aunt_y_od, s=200, c=c_list[j], marker='v', label='Aunt')
-                    texts.append(plt.text(aunt_x_od, aunt_y_od, f'Aunt_id:{aunt_id}'))
+                    plt.scatter(aunt_x_od, aunt_y_od, s=200, c=c_list[j], marker='v')
+                    texts.append(plt.text(aunt_x_od, aunt_y_od, f'Aunt{aunt_id}' + str(aunt_get_order_list)))
                 order_id = order_list[k]
                 x, y, time_info = self.get_aunt_history_info(order_id)
                 plt.scatter(x, y, s=40, c='green', marker='^')
@@ -322,7 +323,7 @@ class Assign(Aunt, Order):
         plt.title('Aunt-Order路线图')
         plt.xlim(self.x_min, self.x_max)
         plt.ylim(self.y_min, self.y_max)
-        plt.savefig(f'../../pic/Aunt-Order路线图.png')
+        plt.savefig(f'../../pic/Aunt-Order路线图{self.gridshape}.png')
         plt.show()
 
     def get_aunt_history_info(self, order_id):
