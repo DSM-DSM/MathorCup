@@ -117,8 +117,7 @@ class Assign(Aunt, Order):
             n += n_t
             self.order.if_retainable(time)
             result22 = pd.concat([result22, self.order.data])
-        result22.to_excel('../../data/result/result22.xlsx')
-        return obj, n
+        return obj, n, result22
 
     def grid_iter_solve(self, timestamp):
         """
@@ -130,7 +129,7 @@ class Assign(Aunt, Order):
         n_final = 0
         iter_num = 0
         order_remain = np.inf
-        while order_remain > 0 and not self.force_to_next_time:
+        while order_remain > 1 and not self.force_to_next_time:
             print(f"**********第{iter_num}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)

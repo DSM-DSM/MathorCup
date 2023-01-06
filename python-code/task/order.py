@@ -26,7 +26,7 @@ class Order:
         self.data['retainable'] = 1
         self.data['current_time'] = 1662768000
 
-    def get_order(self, timestamp):
+    def get_order(self):
         """
 
         :param timestamp:

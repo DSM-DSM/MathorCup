@@ -26,12 +26,13 @@ def main():
     shape = (1, 1)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
-    obj_final, n_final = assign.time_solve()
+    obj_final, n_final, result = assign.time_solve()
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    df_aunt.to_excel(f'../../data/1.1/aunt{shape}.xlsx')
-    df_order.to_excel(f'../../data/1.1/order{shape}.xlsx')
+    # df_aunt.to_excel(f'../../data/1.1/aunt{shape}.xlsx')
+    # df_order.to_excel(f'../../data/1.1/order{shape}.xlsx')
+    # result.to_excel('../../data/result/result22.xlsx')
 
 
 if __name__ == '__main__':
