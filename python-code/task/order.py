@@ -26,15 +26,20 @@ class Order:
         self.data['retainable'] = 1
         self.data['current_time'] = 1662768000
 
-    def get_order(self):
+    def get_order(self, timestamp, solver_mode):
         """
 
-        :param timestamp:
+        :param solver_mode: 求解器模式
+        :param timestamp: 当前时间戳
         :return:
         """
         id_1 = self.data['assign_status'] == 0
         id_2 = self.data['available'] == 1
-        index = id_1 & id_2
+        if solver_mode['mode'] == 'on-line':
+            id_3 = self.data['createTime'] <= timestamp
+            index = id_1 & id_2 & id_3
+        else:
+            index = id_1 & id_2
         return self.data[index]
 
     def update_order_assign_status(self, aunt_order_indexer):

@@ -135,10 +135,10 @@ class Assign(Aunt, Order):
             obj_final += sum(result1)
             n_final += n
             iter_num += 1
-            order_remain = self.order.get_order(timestamp).shape[0]
+            order_remain = self.order.get_order(timestamp, self.solver_mode).shape[0]
         if self.force_to_next_time:
             print('\n##########强制进入下一个时刻##########')
-            print(self.order.get_order(timestamp).index)
+            print(self.order.get_order(timestamp, self.solver_mode).index)
             print(f'##########order_remain:{order_remain}##########\n')
         self.cur_order_all_assign = False
         self.all_to_program = False
@@ -162,7 +162,7 @@ class Assign(Aunt, Order):
         print('********当前gridsize:(%d, %d)********' % (cur_gridshape[0], cur_gridshape[1]))
         # 根据时间和阿姨&订单状态选出候选阿姨
         aunt = self.aunt.get_aunt(timestamp)
-        order = self.order.get_order(timestamp)
+        order = self.order.get_order(timestamp, self.solver_mode)
         result1 = []
         result2 = pd.DataFrame(columns=['aunt_id', 'order_id'])
         n = 0

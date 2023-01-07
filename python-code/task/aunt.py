@@ -18,11 +18,6 @@ class Aunt:
         self.data['first'] = 1
         self.velocity = 15
 
-        # order = [a1,a2,...]
-        # aunt_first = {0,1}
-        # aunt_avail_time = m (int，t)
-        #
-
     def updata_aunt_info(self, aunt_assign_index, timestamp):
         """
         aunt_assign_index需要事先转换为DataFrame类型

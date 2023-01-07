@@ -12,9 +12,9 @@ import datetime
 
 #  high_quality_aunt    1                   0               time
 #      (5 ,5 ) ******************* *******************  ----------------------
-#      (3 ,3 ) ******************* 0.54514148377490060  0:11:23.810269 Seconds
-#      (2 ,2 ) ******************* 0.54535956275154830  0:17:58.299029 Seconds
-#      (1 ,1 ) ******************* 0.55713430392862860  1:08:56.684535 Seconds
+#      (3 ,3 ) ******************* 0.55962475119855800  0:13:51.849539 Seconds
+#      (2 ,2 ) ******************* 0.56089487169637970  0:23:37.211425 Seconds
+#      (1 ,1 ) ******************* 0.56350058788039490  1:53:14.278527 Seconds
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     df_order = df_order.sort_index()
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (3, 3)
+    shape = (1, 1)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     assign.pressing_order = 2
@@ -34,9 +34,9 @@ def main():
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    # df_aunt.to_excel(f'../../data/2.1/aunt{shape}.xlsx')
-    # df_order.to_excel(f'../../data/2.1/order{shape}.xlsx')
-    # result.to_excel('../../data/result/result22.xlsx')
+    df_aunt.to_excel(f'../../data/2.1/aunt{shape}.xlsx')
+    df_order.to_excel(f'../../data/2.1/order{shape}.xlsx')
+    result.to_excel('../../data/result/result22.xlsx')
 
 
 if __name__ == '__main__':
