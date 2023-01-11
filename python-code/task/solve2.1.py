@@ -26,7 +26,7 @@ def plot_score_linechart(data, shape, path):
     ax.grid(linestyle="--", alpha=0.3)
 
     ax.right_ax.set_ylabel('订单数')
-    plt.savefig(path + f'双轴折线图,{shape}.png')
+    plt.savefig(path + f'双轴折线图/双轴折线图，{shape}.png')
     plt.show()
 
 
@@ -40,7 +40,7 @@ def main():
     df_order = df_order.sort_index()
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (4, 4)
+    shape = (1, 1)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     assign.pressing_order = 2

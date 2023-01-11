@@ -140,7 +140,7 @@ class Assign(Aunt, Order):
         iter_num = 0
         order_remain = np.inf
         while order_remain > 1 and not self.force_to_next_time:
-            print(f"**********第{iter_num}次网格迭代搜索**********")
+            print(f"**********第{iter_num + 1}次网格迭代搜索**********")
             result1, n = self.grid_solve(solver=solver, timestamp=timestamp, iter_num=iter_num)
             obj_final += sum(result1)
             n_final += n
@@ -233,13 +233,11 @@ class Assign(Aunt, Order):
             else:
                 r = self.gridshape[0] - 1 * iter_num
                 c = self.gridshape[1] - 1 * iter_num
-                if r == 0:
-                    size = (1, c)
-                    return size
-                if c == 0:
-                    size = (r, 1)
-                else:
-                    size = (r, c)
+                if r <= 0:
+                    r = 1
+                if c <= 0:
+                    c = 1
+                size = (r, c)
                 return size
 
     def updata_aunt_order(self, indexer, timestamp):
