@@ -5,7 +5,6 @@
 # Copyright JinYueYu.All Right Reserved.
 import math
 import warnings
-
 import numpy as np
 import pandas as pd
 from order import Order
@@ -14,6 +13,8 @@ from solve import solver
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from adjustText import adjust_text
+
+warnings.filterwarnings('ignore')
 
 
 class Assign(Aunt, Order):
@@ -107,6 +108,7 @@ class Assign(Aunt, Order):
         obj = 0
         n = 0
         result22 = pd.DataFrame()
+        obj_n_t_list = np.zeros(shape=(2 * (time_max - time_min) + 1, 4))
         print("***********当前求解状态:***********\n")
         print("是否线上派单:" + str(bool(self.pressing_order)) + ';是否考虑当前时间点未来的Aunt:' + str(
             bool(self.future_aunt)) + '\n')
@@ -115,12 +117,17 @@ class Assign(Aunt, Order):
             self.order.updata_order_available(time, self.pressing_order)
             self.aunt.updata_aunt_assign_status(time)
             print(f"*************第{time}时刻*************")
-            obj_t, n_t = self.grid_iter_solve(time)
+            order_exist = self.order.get_order(time, self.solver_mode).shape[0]
+            obj_t, order_assign = self.grid_iter_solve(time)
             obj += obj_t
-            n += n_t
+            n += order_assign
             self.order.if_retainable(time)
             result22 = pd.concat([result22, self.order.data])
-        return obj, n, result22
+            obj_n_t_list[int(2 * (time + self.enlarge_time_axis)), :] = [obj_t, order_exist, order_assign, time]
+        # 计算目标函数的均值
+        obj_n_t_list[:, 0] = obj_n_t_list[:, 0] / obj_n_t_list[:, 2]
+        obj_n_t_list[np.isnan(obj_n_t_list[:, 0]), 0] = 0
+        return obj, n, result22, obj_n_t_list
 
     def grid_iter_solve(self, timestamp):
         """
