@@ -37,7 +37,8 @@ class Assign(Aunt, Order):
         self.pressing_order = 0
         self.enlarge_time_axis = 0
         self.future_aunt = 0
-        self.solver_mode = {'mode': 'off-line', 'start_time_axis': self.enlarge_time_axis}
+        self.solver_mode = {'mode': 'off-line', 'start_time_axis': self.enlarge_time_axis,
+                            'future_aunt': self.future_aunt, 'pressing_order': self.pressing_order}
 
     def online_order_assign(self):
         if self.enlarge_time_axis != 0:
@@ -45,6 +46,8 @@ class Assign(Aunt, Order):
             self.order.data['current_time'] = self.order.data['current_time'] - 3600 * self.enlarge_time_axis
             self.solver_mode['mode'] = 'on-line'
             self.solver_mode['start_time_axis'] = self.enlarge_time_axis
+            self.solver_mode['future_aunt'] = self.future_aunt
+            self.solver_mode['pressing_order'] = self.pressing_order
 
     def get_grid_info(self):
         try:
@@ -161,7 +164,7 @@ class Assign(Aunt, Order):
         self.grid_iter(cur_gridshape)
         print('********当前gridsize:(%d, %d)********' % (cur_gridshape[0], cur_gridshape[1]))
         # 根据时间和阿姨&订单状态选出候选阿姨
-        aunt = self.aunt.get_aunt(timestamp)
+        aunt = self.aunt.get_aunt(timestamp, self.solver_mode)
         order = self.order.get_order(timestamp, self.solver_mode)
         result1 = []
         result2 = pd.DataFrame(columns=['aunt_id', 'order_id'])
@@ -205,9 +208,15 @@ class Assign(Aunt, Order):
     def enlarge_gridshape(self, iter_num):
         """
         网格扩大化求解中，更新网格参数的函数
-        :param iter_num:
+        :param iter_num: 当前网格化求解的迭代次数
         :return:
         """
+        # 方案1：
+        # r = round(math.pow(self.gridshape[0], 1 / 2 * iter_num))
+        # c = round(math.pow(self.gridshape[1], 1 / 2 * iter_num))
+        # 方案2：
+        # r = round(self.gridshape[0] / (iter_num))
+        # c = round(self.gridshape[1] / (iter_num))
         if iter_num == 0:
             return self.gridshape
         else:
@@ -215,18 +224,15 @@ class Assign(Aunt, Order):
                 size = (1, 1)
                 return size
             else:
-                # r = round(math.pow(self.gridshape[0], 1 / 2 * iter_num))
-                # c = round(math.pow(self.gridshape[1], 1 / 2 * iter_num))
-                # r = round(self.gridshape[0] / (iter_num))
-                # c = round(self.gridshape[1] / (iter_num))
                 r = self.gridshape[0] - 1 * iter_num
                 c = self.gridshape[1] - 1 * iter_num
-                if r == 0 or c == 0:
-                    r = self.gridshape[0] - 1 * (iter_num - 1)
-                    c = self.gridshape[1] - 1 * (iter_num - 1)
-                    size = (r, c)
+                if r == 0:
+                    size = (1, c)
                     return size
-                size = (r, c)
+                if c == 0:
+                    size = (r, 1)
+                else:
+                    size = (r, c)
                 return size
 
     def updata_aunt_order(self, indexer, timestamp):
@@ -237,7 +243,7 @@ class Assign(Aunt, Order):
             p1 = (self.aunt.data.loc[aunt_id, 'x'], self.aunt.data.loc[aunt_id, 'y'])
             p2 = (self.order.data.loc[order_id, 'x'], self.order.data.loc[order_id, 'y'])
             dist = math.dist(p1, p2)
-            self.aunt.data.loc[aunt_id, 'avail_time'] = timestamp + self.calculate_time(dist) + self.order.data.loc[
+            self.aunt.data.loc[aunt_id, 'avail_time'] += self.calculate_time(dist) + self.order.data.loc[
                 order_id, 'serviceUnitTime']
             self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
                     timestamp + self.calculate_time(dist))

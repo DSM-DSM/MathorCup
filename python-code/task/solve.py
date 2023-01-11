@@ -22,6 +22,7 @@ def generate_constrain_matrix(aunt, order, timestamp, solver_mode):
         firstime = order.iloc[i, :].serviceFirstTime
         for j in range(n_aunt):
             first = aunt.iloc[j, :]['first']
+            avail_time = aunt.iloc[j, :]['avail_time']
             if first == 1:
                 if solver_mode['mode'] == 'off-line':
                     constrain_matrix[i, j] = 1
@@ -31,31 +32,49 @@ def generate_constrain_matrix(aunt, order, timestamp, solver_mode):
                     else:
                         constrain_matrix[i, j] = 1
             else:
-                if dist[i, j] > (lastime + firstime - timestamp) * 15:
+                if lastime + firstime - avail_time <= 0:
                     constrain_matrix[i, j] = 0
                 else:
-                    constrain_matrix[i, j] = 1
+                    if dist[i, j] > (lastime + firstime - avail_time) * 15:
+                        constrain_matrix[i, j] = 0
+                    else:
+                        constrain_matrix[i, j] = 1
     return constrain_matrix
 
 
-def generate_travel_time_matrix(aunt, dist, timestamp):
+def generate_travel_time_matrix(aunt, order, dist):
+    """
+
+    :param order:
+    :param aunt:
+    :param dist:
+    :return: Aunt对应于每一个Order的服务间隔时间矩阵
+    """
     first_order = aunt['first'].to_numpy()
     avail_time = aunt['avail_time'].to_numpy()
+    firstime = order['serviceFirstTime'].to_numpy()
     time_travel_matrix = np.floor(dist / 7.5) * 0.5 + 0.5
     for i in range(dist.shape[0]):
         for j in range(dist.shape[1]):
-            time_travel_matrix[i, j] += (timestamp - avail_time[j])
             if first_order[j] == 1:
                 time_travel_matrix[i, j] = 0.5
+            elif avail_time[j] + time_travel_matrix[i, j] <= firstime[i]:
+                time_travel_matrix[i, j] = firstime[i] - avail_time[j]
     return time_travel_matrix
 
 
-def get_a_b_c(aunt, timestamp, x, dist):
-    # 2.创建需要的矩阵和表达式
-    # A代表服务分,B代表通行距离,C代表阿姨的服务间隔时间
+def get_a_b_c(aunt, order, x, dist):
+    """
+
+    :param order:
+    :param aunt:
+    :param x:
+    :param dist:
+    :return:A代表服务分,B代表通行距离,C代表阿姨的服务间隔时间
+    """
     A = cp.sum(x @ aunt['serviceScore'].values)
     B = cp.sum(cp.multiply(dist, x))
-    travel_time_matrix = generate_travel_time_matrix(aunt, dist, timestamp)
+    travel_time_matrix = generate_travel_time_matrix(aunt, order, dist)
     C = cp.sum(cp.multiply(x, travel_time_matrix))
     return A, B, C
 
@@ -81,7 +100,7 @@ def solver(aunt, order, timestamp, solver_mode, n=1, status=True, *args):
     alpha = cp.Parameter(nonneg=True, value=0.78)
     beta = cp.Parameter(nonneg=True, value=0.025)
     gamma = cp.Parameter(nonneg=True, value=0.195)
-    A, B, C = get_a_b_c(aunt, timestamp, x, dist)
+    A, B, C = get_a_b_c(aunt, order, x, dist)
 
     # 2.定义约束
     if_high_quality = np.zeros((n_aunt,), dtype=int)

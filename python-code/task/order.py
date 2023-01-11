@@ -34,6 +34,7 @@ class Order:
         :return:
         """
         id_1 = self.data['assign_status'] == 0
+        # order['available']根据求解器模式模式定义的
         id_2 = self.data['available'] == 1
         if solver_mode['mode'] == 'on-line':
             id_3 = self.data['createTime'] <= timestamp

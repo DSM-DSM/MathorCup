@@ -21,6 +21,7 @@ class Aunt:
     def updata_aunt_info(self, aunt_assign_index, timestamp):
         """
         aunt_assign_index需要事先转换为DataFrame类型
+        :param timestamp:
         :param aunt_assign_index:
         :return:
         """
@@ -36,13 +37,21 @@ class Aunt:
         idx = self.data['avail_time'] <= timestamp
         self.data.loc[idx, 'assign_status'] = 0
 
-    def get_aunt(self, timestamp):
+    def get_aunt(self, timestamp, solver_mode):
         """
 
+        :param solver_mode:
         :param timestamp:
         :return:
         """
         id_1 = self.data['assign_status'] == 0
-        id_2 = self.data['avail_time'] <= timestamp
-        index = id_1 & id_2
-        return self.data[index]
+        if solver_mode['mode'] == 'off-line':
+            id_2 = self.data['avail_time'] <= timestamp
+            index = id_1 & id_2
+            return self.data[index]
+        else:
+            id_2 = self.data['avail_time'] <= timestamp + solver_mode['future_aunt']
+            index = id_1 & id_2
+            return self.data[index]
+
+
