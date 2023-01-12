@@ -112,6 +112,7 @@ class Assign(Aunt, Order):
         print("***********当前求解状态:***********\n")
         print("是否线上派单:" + str(bool(self.pressing_order)) + ';是否考虑当前时间点未来的Aunt:' + str(
             bool(self.future_aunt)) + '\n')
+        print("是否考虑优质阿姨策略：" + str(bool(self.use_high_quality)) + '\n')
         print('考虑' + str(self.pressing_order) + '小时后的Order  考虑' + str(self.future_aunt) + '小时后的Aunt\n')
         for time in time_linspace:
             self.order.updata_order_available(time, self.pressing_order)
@@ -127,7 +128,8 @@ class Assign(Aunt, Order):
         # 计算目标函数的均值
         obj_n_t_list[:, 0] = obj_n_t_list[:, 0] / obj_n_t_list[:, 2]
         obj_n_t_list[np.isnan(obj_n_t_list[:, 0]), 0] = 0
-        return obj, n, result22, obj_n_t_list
+        self.plot_score_linechart(obj_n_t_list)
+        return obj, n, result22
 
     def grid_iter_solve(self, timestamp):
         """
@@ -189,9 +191,9 @@ class Assign(Aunt, Order):
                     if self.use_high_quality:
                         high_quality_aunt_id = self.choose_high_quality_aunt(cur_aunt, cur_order)
                         prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, self.solver_mode,
-                                                           high_quality_aunt_id)
+                                                           1, True, high_quality_aunt_id)
                     else:
-                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, self.solver_mode)
+                        prob, x, assign_order_num = solver(cur_aunt, cur_order, timestamp, self.solver_mode, 1, True)
                     # 因为solver的求解情况有多种（仅考虑紧急订单~考虑当前时间段所有订单），因此需要明确prob.value对应分批的订单的个数
                     if prob.value >= 1:
                         # 可能存在当前阿姨无法完全分配掉当前时间的紧急订单情况
@@ -265,8 +267,8 @@ class Assign(Aunt, Order):
         if self.assign_has_huge_diff(aunt, order):
             num = int(order.shape[0] * 1.5)
             high_quality_aunt = aunt.sort_values(by='serviceScore', ascending=False)[:num]
-            return high_quality_aunt.id
-        return aunt.id
+            return high_quality_aunt.index
+        return aunt.index
 
     def assign_has_huge_diff(self, aunt, order):
         if aunt.shape[0] > 4 * order.shape[0]:
@@ -341,3 +343,19 @@ class Assign(Aunt, Order):
         cur_y = self.order.data.loc[order_id, 'y_od']
         serviceStartTime = 'arrive:' + str(self.order.data.loc[order_id, 'serviceStartTime'])
         return cur_x, cur_y, serviceStartTime
+
+    def plot_score_linechart(self, data):
+        mpl.rcParams['font.sans-serif'] = ['simhei']
+        mpl.rcParams['axes.unicode_minus'] = False
+        rag = max(data[:, 3]) - min(data[:, 3])
+        date_series = pd.date_range(start='2023-1-1 0:00:00', end='2023-1-1 ' + str(rag) + ':00:00', freq="30min")
+        df = pd.DataFrame(data[:, 0:3], index=date_series, columns=['obj', 'n_exist', 'n_assign'])
+
+        ax = df.plot(secondary_y=['n_exist', 'n_assign'], x_compat=True, grid=True)
+        ax.set_title(f"目标函数值-订单数,gridshape:{self.gridshape}")
+        ax.set_ylabel('目标函数值')
+        ax.grid(linestyle="--", alpha=0.3)
+
+        ax.right_ax.set_ylabel('订单数')
+        plt.savefig(f'../../pic/双轴折线图/双轴折线图，{self.gridshape}.png')
+        plt.show()

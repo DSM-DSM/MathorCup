@@ -86,7 +86,7 @@ def get_urgent_order(order, timestamp, n):
     return urgent_order_index, urgent_rank
 
 
-def solver(aunt, order, timestamp, solver_mode, n=1, status=True, *args):
+def solver(aunt, order, timestamp, solver_mode, n, status, *args):
     if args:
         high_quality_aunt_id = args[0]
     else:
