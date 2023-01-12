@@ -22,19 +22,19 @@ def main():
     df_order = df_order.sort_index()
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (2, 2)
+    shape = (1, 1)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     assign.pressing_order = 4
-    assign.enlarge_time_axis = 3
     assign.future_aunt = 3
+    assign.enlarge_time_axis = 3
     obj_final, n_final, result = assign.time_solve()
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
-    # df_aunt.to_excel(path1 + f'test/aunt{shape}.xlsx')
-    # df_order.to_excel(path1 + f'test/order{shape}.xlsx')
-    # result.to_excel(path1 + f'test/{shape}过程.xlsx')
+    df_aunt.to_excel(path1 + f'2.1/aunt433{shape}.xlsx')
+    df_order.to_excel(path1 + f'2.1/order433{shape}.xlsx')
+    result.to_excel(path1 + f'2.1/{shape}过程433.xlsx')
 
 
 if __name__ == '__main__':

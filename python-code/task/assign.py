@@ -15,6 +15,10 @@ import matplotlib as mpl
 from adjustText import adjust_text
 
 warnings.filterwarnings('ignore')
+mpl.rcParams['font.sans-serif'] = ['simhei']
+mpl.rcParams['axes.unicode_minus'] = False
+plt.rcParams['savefig.dpi'] = 300
+plt.rcParams['figure.dpi'] = 300
 
 
 class Assign(Aunt, Order):
@@ -128,7 +132,8 @@ class Assign(Aunt, Order):
         # 计算目标函数的均值
         obj_n_t_list[:, 0] = obj_n_t_list[:, 0] / obj_n_t_list[:, 2]
         obj_n_t_list[np.isnan(obj_n_t_list[:, 0]), 0] = 0
-        self.plot_score_linechart(obj_n_t_list)
+        self.plot_score_linechart1(obj_n_t_list)
+        self.plot_score_linechart2(obj_n_t_list)
         return obj, n, result22
 
     def grid_iter_solve(self, timestamp):
@@ -291,12 +296,6 @@ class Assign(Aunt, Order):
         return df
 
     def plot_order_aunt_route(self):
-        # 防止plt汉字乱码
-        mpl.rcParams['font.sans-serif'] = ['simhei']
-        mpl.rcParams['axes.unicode_minus'] = False
-        plt.rcParams['savefig.dpi'] = 300
-        plt.rcParams['figure.dpi'] = 300
-
         plt.figure(figsize=(24, 8))
         texts = []
         # 绘制Order信息
@@ -344,18 +343,65 @@ class Assign(Aunt, Order):
         serviceStartTime = 'arrive:' + str(self.order.data.loc[order_id, 'serviceStartTime'])
         return cur_x, cur_y, serviceStartTime
 
-    def plot_score_linechart(self, data):
-        mpl.rcParams['font.sans-serif'] = ['simhei']
-        mpl.rcParams['axes.unicode_minus'] = False
+    def plot_score_linechart1(self, data):
         rag = max(data[:, 3]) - min(data[:, 3])
         date_series = pd.date_range(start='2023-1-1 0:00:00', end='2023-1-1 ' + str(rag) + ':00:00', freq="30min")
         df = pd.DataFrame(data[:, 0:3], index=date_series, columns=['obj', 'n_exist', 'n_assign'])
 
+        plt.figure(figsize=(16, 8))
         ax = df.plot(secondary_y=['n_exist', 'n_assign'], x_compat=True, grid=True)
         ax.set_title(f"目标函数值-订单数,gridshape:{self.gridshape}")
         ax.set_ylabel('目标函数值')
         ax.grid(linestyle="--", alpha=0.3)
-
+        texts = []
+        for a, b, c in zip(df['time'], df['n_exist'], df['n_assign']):
+            if b == c:
+                texts.append(plt.text(a, b, b, ha='center', va='bottom', fontsize=10))
+            else:
+                texts.append(plt.text(a, b, b, ha='center', va='bottom', fontsize=10))
+                texts.append(plt.text(a, c, c, ha='center', va='bottom', fontsize=10))
+        adjust_text(texts)
         ax.right_ax.set_ylabel('订单数')
-        plt.savefig(f'../../pic/双轴折线图/双轴折线图，{self.gridshape}.png')
+        plt.legend(bbox_to_anchor=(1.05, 1.0), loc=1, borderaxespad=0.)
+        plt.savefig(f'../../pic/双轴折线图/2.1,433双轴折线图1,{self.gridshape}.png')
+        plt.show()
+
+    def plot_score_linechart2(self, data):
+        df = pd.DataFrame(data, columns=['obj', 'n_exist', 'n_assign', 'time'])
+        df['obj'] = round(df['obj'], 3)
+        df['time'] = round(df['time'], 1)
+        df['n_exist'] = df['n_exist'].astype(int)
+        df['n_assign'] = df['n_assign'].astype(int)
+        fig = plt.figure(figsize=(10, 5))
+        ax1 = fig.add_subplot(1, 2, 1)
+        ax2 = fig.add_subplot(1, 2, 2)
+        # 画点
+        ax1.plot(df['time'], df['obj'], marker='o')
+        ax2.plot(df['time'], df['n_exist'], marker='v', label='exist')
+        ax2.plot(df['time'], df['n_assign'], marker='^', label='assign')
+        # 标坐标值
+        texts = []
+        for xy in zip(df['time'], df['obj']):
+            texts.append(ax1.annotate(str(xy[1]), xy=xy, xytext=(-20, 10), textcoords='offset points', fontsize=8,
+                                      weight='heavy'))
+        for a, b, c in zip(df['time'], df['n_exist'], df['n_assign']):
+            if b == c:
+                texts.append(ax2.text(a, b, b, ha='center', va='bottom', fontsize=10))
+            else:
+                texts.append(ax2.text(a, b, b, ha='center', va='bottom', fontsize=10))
+                texts.append(ax2.text(a, c, c, ha='center', va='bottom', fontsize=10))
+        adjust_text(texts)
+        # 设置标题
+        ax1.set_title("目标函数折线图")
+        ax2.set_title("订单开启和订单分配折线图")
+        # 设置坐标
+        ax1.set_xlabel("时间t")
+        ax1.set_ylabel("目标函数值")
+        ax2.set_xlabel("时间t")
+        ax2.set_ylabel("订单数量")
+        ax1.grid()
+        ax2.grid()
+        # 设置图例
+        ax2.legend(loc=1)
+        plt.savefig(f'../../pic/双轴折线图/2.1,433双轴折线图2,{self.gridshape}.png')
         plt.show()
