@@ -20,7 +20,8 @@ def main():
     shape = (2, 2)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
-    obj_final, n_final, result, plot_data = assign.time_solve()
+    assign.plot_interpolation()
+    obj_final, n_final, result = assign.time_solve()
     print(obj_final / n_final)
     end = datetime.datetime.now()
     print('Running time: %s Seconds' % (end - start))
