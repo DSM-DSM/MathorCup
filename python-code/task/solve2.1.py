@@ -22,7 +22,7 @@ def main():
     df_order = df_order.sort_index()
     aunt = Aunt(df_aunt)
     order = Order(df_order)
-    shape = (2, 2)
+    shape = (1, 1)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
     assign.pressing_order = 2

@@ -433,8 +433,8 @@ class Assign(Aunt, Order):
         ax.set_xlabel('x坐标')
         ax.set_ylabel('y坐标', labelpad=0.5)
         ax.grid(False)
-        plt.show()
         plt.savefig('../../pic/插值/3d.png')
+        plt.show()
 
         plt.figure(2, figsize=(16, 12))
         fig, ax2 = plt.subplots()
@@ -445,8 +445,8 @@ class Assign(Aunt, Order):
         ax2.set_xlabel('x坐标', labelpad=0.3)
         ax2.set_ylabel('y坐标')
         plt.xticks(rotation=40)
-        plt.show()
         plt.savefig('../../pic/插值/热力图.png')
+        plt.show()
 
         plt.figure(3, figsize=(12, 12))
         plt.contourf(x_new, y_new, order_z_new, 7, cmap='rainbow', extend='both')
@@ -457,5 +457,5 @@ class Assign(Aunt, Order):
         plt.ylabel('y坐标', fontsize=25)
         plt.xticks(fontsize=25)
         plt.yticks(fontsize=25)
-        plt.show()
         plt.savefig('../../pic/插值/等值线.png')
+        plt.show()
