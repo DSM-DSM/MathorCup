@@ -28,6 +28,7 @@ def main():
     assign.pressing_order = 4
     assign.future_aunt = 3
     assign.enlarge_time_axis = 3
+    assign.plot_interpolation()
     obj_final, n_final, result = assign.time_solve()
     print(obj_final / n_final)
     end = datetime.datetime.now()

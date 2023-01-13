@@ -13,6 +13,7 @@ from solve import solver
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from adjustText import adjust_text
+from scipy import interpolate
 
 warnings.filterwarnings('ignore')
 mpl.rcParams['font.sans-serif'] = ['simhei']
@@ -344,9 +345,11 @@ class Assign(Aunt, Order):
         return cur_x, cur_y, serviceStartTime
 
     def plot_score_linechart1(self, data):
-        rag = max(data[:, 3]) - min(data[:, 3])
-        date_series = pd.date_range(start='2023-1-1 0:00:00', end='2023-1-1 ' + str(rag) + ':00:00', freq="30min")
-        df = pd.DataFrame(data[:, 0:3], index=date_series, columns=['obj', 'n_exist', 'n_assign'])
+        df = pd.DataFrame(data, columns=['obj', 'n_exist', 'n_assign', 'time'])
+        df['obj'] = round(df['obj'], 3)
+        df['time'] = round(df['time'], 1)
+        df['n_exist'] = df['n_exist'].astype(int)
+        df['n_assign'] = df['n_assign'].astype(int)
 
         plt.figure(figsize=(16, 8))
         ax = df.plot(secondary_y=['n_exist', 'n_assign'], x_compat=True, grid=True)
@@ -404,4 +407,52 @@ class Assign(Aunt, Order):
         # 设置图例
         ax2.legend(loc=1)
         plt.savefig(f'../../pic/双轴折线图/2.1,433双轴折线图2,{self.gridshape}.png')
+        plt.show()
+
+    def plot_interpolation(self):
+        import seaborn as sns
+        mgrid_shape = (10, 10)
+        self.grid_iter(mgrid_shape)
+        order_z = np.zeros(mgrid_shape)
+        for i in range(mgrid_shape[0]):
+            for j in range(mgrid_shape[1]):
+                id_1 = self.order.data['district_x'] == i
+                id_2 = self.order.data['district_y'] == j
+                n_ij = np.sum(id_1 & id_2)
+                order_z[i, j] = n_ij
+
+        x, y = np.mgrid[self.x_min / 1000:self.x_max / 1000:complex(0, mgrid_shape[0]),
+               self.y_min / 1000:self.y_max / 1000:complex(mgrid_shape[1])]
+        x_new, y_new = np.mgrid[self.x_min / 1000:self.x_max / 1000:100j, self.y_min / 1000:self.y_max / 1000:100j]
+        func = interpolate.Rbf(x, y, order_z, function='multiquadric')
+        order_z_new = func(x_new, y_new)
+        plt.figure(1, figsize=(12, 6))
+        ax = plt.subplot(111, projection='3d')
+        # cmap = ['spring', 'YlOrRd', 'YlGnBu', 'GnBu', 'magma', 'plasma', 'rainbow']
+        ax.plot_surface(x_new, y_new, order_z_new, cmap='rainbow')
+        ax.set_xlabel('x坐标')
+        ax.set_ylabel('y坐标', labelpad=0.5)
+        ax.grid(False)
+        plt.show()
+
+        plt.figure(2, figsize=(16, 12))
+        fig, ax2 = plt.subplots()
+        heat_map = pd.DataFrame(order_z_new, index=np.round(y_new[0, :], 1), columns=np.sort(np.round(x_new[:, 0], 1)))
+        heat_map.sort_index(ascending=False, inplace=True)
+        sns.heatmap(heat_map, fmt='g', cmap='rainbow')
+        ax2.set_title('订单分布热力图')
+        ax2.set_xlabel('x坐标', labelpad=0.3)
+        ax2.set_ylabel('y坐标')
+        plt.xticks(rotation=40)
+        plt.show()
+
+        plt.figure(3, figsize=(12, 12))
+        plt.contourf(x_new, y_new, order_z_new, 7, cmap='rainbow', extend='both')
+        line = plt.contour(x_new, y_new, order_z_new, 7)
+        plt.clabel(line, inline=True, fontsize=15)
+        plt.title('订单分布等值线图', fontsize=30)
+        plt.xlabel('x坐标', fontsize=25)
+        plt.ylabel('y坐标', fontsize=25)
+        plt.xticks(fontsize=25)
+        plt.yticks(fontsize=25)
         plt.show()
