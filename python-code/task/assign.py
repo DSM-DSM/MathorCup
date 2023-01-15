@@ -4,6 +4,8 @@
 # Description : 
 # Copyright JinYueYu.All Right Reserved.
 import math
+import random
+import colorsys
 import warnings
 import numpy as np
 import pandas as pd
@@ -20,6 +22,50 @@ mpl.rcParams['font.sans-serif'] = ['simhei']
 mpl.rcParams['axes.unicode_minus'] = False
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['figure.dpi'] = 300
+
+
+def get_n_hls_colors(num):
+    hls_colors = []
+    i = 0
+    step = 360.0 / num
+    while i < 360:
+        h = i
+        s = 90 + random.random() * 10
+        l = 50 + random.random() * 10
+        _hlsc = [h / 360.0, l / 100.0, s / 100.0]
+        hls_colors.append(_hlsc)
+        i += step
+
+    return hls_colors
+
+
+def ncolors(num):
+    rgb_colors = []
+    if num < 1:
+        return rgb_colors
+    hls_colors = get_n_hls_colors(num)
+    for hlsc in hls_colors:
+        _r, _g, _b = colorsys.hls_to_rgb(hlsc[0], hlsc[1], hlsc[2])
+        r, g, b = [int(x * 255.0) for x in (_r, _g, _b)]
+        rgb_colors.append([r, g, b])
+
+    return rgb_colors
+
+
+def color(value):
+    digit = list(map(str, range(10))) + list("ABCDEF")
+    if isinstance(value, tuple):
+        string = '#'
+        for i in value:
+            a1 = i // 16
+            a2 = i % 16
+            string += digit[a1] + digit[a2]
+        return string
+    elif isinstance(value, str):
+        a1 = digit.index(value[1]) * 16 + digit.index(value[2])
+        a2 = digit.index(value[3]) * 16 + digit.index(value[4])
+        a3 = digit.index(value[5]) * 16 + digit.index(value[6])
+        return (a1, a2, a3)
 
 
 class Assign(Aunt, Order):
@@ -133,8 +179,9 @@ class Assign(Aunt, Order):
         # 计算目标函数的均值
         obj_n_t_list[:, 0] = obj_n_t_list[:, 0] / obj_n_t_list[:, 2]
         obj_n_t_list[np.isnan(obj_n_t_list[:, 0]), 0] = 0
-        self.plot_score_linechart1(obj_n_t_list)
-        self.plot_score_linechart2(obj_n_t_list)
+        # 绘制订单分配折线图
+        # self.plot_score_linechart1(obj_n_t_list)
+        # self.plot_score_linechart2(obj_n_t_list)
         return obj, n, result22
 
     def grid_iter_solve(self, timestamp):
@@ -258,9 +305,9 @@ class Assign(Aunt, Order):
             dist = math.dist(p1, p2)
             self.aunt.data.loc[aunt_id, 'avail_time'] += self.calculate_time(dist) + self.order.data.loc[
                 order_id, 'serviceUnitTime']
-            self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
-                    timestamp + self.calculate_time(dist))
-            # self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
+            # self.order.data.loc[order_id, 'serviceStartTime'] = 1662768000 + 3600 * (
+            #         timestamp + self.calculate_time(dist))
+            self.order.data.loc[order_id, 'serviceStartTime'] = timestamp + self.calculate_time(dist)
             self.order.data.loc[order_id, 'aunt_id'] = aunt_id
             self.aunt.data.loc[aunt_id, 'x'] = self.order.data.loc[order_id, 'x']
             self.aunt.data.loc[aunt_id, 'y'] = self.order.data.loc[order_id, 'y']
@@ -297,7 +344,7 @@ class Assign(Aunt, Order):
         return df
 
     def plot_order_aunt_route(self):
-        plt.figure(figsize=(24, 8))
+        plt.figure(figsize=(16, 12))
         texts = []
         # 绘制Order信息
         for i in range(self.order.n):
@@ -307,12 +354,11 @@ class Assign(Aunt, Order):
             lastime = self.order.data.iloc[i, :].serviceLastTime + firstime
             order_id = self.order.data.iloc[i, :].name
             plt.scatter(x, y, s=400, c='red', marker='*', alpha=0.9)
-            text_info = f'Order{order_id}' + '[' + str(firstime) + ',' + str(lastime) + ']'
+            text_info = f'O{order_id}' + '[' + str(firstime) + ',' + str(lastime) + ']'
             texts.append(plt.text(x, y, text_info))
 
         # 绘制Aunt信息
-        c_list = ['b', 'c', 'g', 'k', 'm', 'r', 'y', '#F0E68C', '#00FF7F', '#F5DEB3',
-                  'b', 'c', 'g', 'k', 'm', 'r', 'y', '#F0E68C', '#00FF7F', '#F5DEB3']
+        c_list = list(map(lambda x: color(tuple(x)), ncolors(self.aunt.data.shape[0])))
         for j in range(self.aunt.n):
             aunt_x_od = self.aunt.data.iloc[j, :].x_od
             aunt_y_od = self.aunt.data.iloc[j, :].y_od
@@ -323,25 +369,26 @@ class Assign(Aunt, Order):
             for k in range(get_order_num):
                 if k == 0:
                     plt.scatter(aunt_x_od, aunt_y_od, s=200, c=c_list[j], marker='v')
-                    texts.append(plt.text(aunt_x_od, aunt_y_od, f'Aunt{aunt_id}' + str(aunt_get_order_list)))
+                    texts.append(plt.text(aunt_x_od, aunt_y_od, f'A{aunt_id}' + str(aunt_get_order_list)))
                 order_id = order_list[k]
                 x, y, time_info = self.get_aunt_history_info(order_id)
-                plt.scatter(x, y, s=40, c='green', marker='^')
-                texts.append(plt.text(x, y, time_info))
-                plt.plot([aunt_x_od, x], [aunt_y_od, y], color=c_list[j], linestyle=':', linewidth=1)
+                plt.scatter(x, y, s=40, c=c_list[j], marker='^')
+                texts.append(plt.text((x + aunt_x_od) / 2, (y + aunt_y_od) / 2, time_info))
+                plt.plot([aunt_x_od, x], [aunt_y_od, y], color=c_list[j], linestyle='-', linewidth=2)
                 aunt_x_od = x
                 aunt_y_od = y
-        adjust_text(texts, only_move={'text': 'y'})
+        adjust_text(texts)
         plt.title('Aunt-Order路线图')
         plt.xlim(self.x_min, self.x_max)
         plt.ylim(self.y_min, self.y_max)
+        plt.grid()
         plt.savefig(f'../../pic/Aunt-Order路线图{self.gridshape}.png')
         plt.show()
 
     def get_aunt_history_info(self, order_id):
         cur_x = self.order.data.loc[order_id, 'x_od']
         cur_y = self.order.data.loc[order_id, 'y_od']
-        serviceStartTime = 'arrive:' + str(self.order.data.loc[order_id, 'serviceStartTime'])
+        serviceStartTime = 'Arv' + str(self.order.data.loc[order_id, 'serviceStartTime'])
         return cur_x, cur_y, serviceStartTime
 
     def plot_score_linechart1(self, data):
