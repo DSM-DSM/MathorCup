@@ -79,9 +79,12 @@ def get_a_b_c(aunt, order, x, dist):
     return A, B, C
 
 
-def get_urgent_order(order, timestamp, n):
+def get_urgent_order(order, timestamp, n, solver_mode):
     urgent = (order.serviceLastTime + order.serviceFirstTime - timestamp)
     urgent_rank = urgent.rank(method='dense')
+    if solver_mode['mode'] == 'on-line':
+        urgent_rank[urgent <= 2] = 1
+        urgent_rank = urgent_rank.rank(method='dense')
     urgent_order_index = urgent_rank[urgent_rank <= n].index
     return urgent_order_index, urgent_rank
 
@@ -104,7 +107,7 @@ def solver(aunt, order, timestamp, solver_mode, n, status, *args):
 
     # 2.定义约束
     if_high_quality = np.zeros((n_aunt,), dtype=int)
-    urgent_order, rank = get_urgent_order(order, timestamp, n)
+    urgent_order, rank = get_urgent_order(order, timestamp, n, solver_mode)
     # 2.1设置优质阿姨
     for i in range(n_aunt):
         if aunt.iloc[i, :].name in high_quality_aunt_id:
@@ -140,7 +143,6 @@ def solver(aunt, order, timestamp, solver_mode, n, status, *args):
     df = pd.DataFrame(x.value)
     print(prob.value)
     # 4.递归求解，直至找到当前时间段，当前网格中最优的目标函数值
-    # aunt, order, timestamp, solver_mode, n = 1, status = True, *args
     if status:
         if prob.status == 'optimal' and n >= 1:
             if n > max(rank):
