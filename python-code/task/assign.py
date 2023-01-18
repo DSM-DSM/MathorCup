@@ -5,6 +5,7 @@
 # Copyright JinYueYu.All Right Reserved.
 import math
 import random
+import datetime
 import colorsys
 import warnings
 import numpy as np
@@ -12,10 +13,10 @@ import pandas as pd
 from order import Order
 from aunt import Aunt
 from solve import solver
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from adjustText import adjust_text
 from scipy import interpolate
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from adjustText import adjust_text
 
 warnings.filterwarnings('ignore')
 mpl.rcParams['font.sans-serif'] = ['simhei']
@@ -160,12 +161,14 @@ class Assign(Aunt, Order):
         n = 0
         result22 = pd.DataFrame()
         obj_n_t_list = np.zeros(shape=(2 * (time_max - time_min) + 1, 4))
+        time_plot = pd.DataFrame(columns=['period', 'time'])
         print("***********当前求解状态:***********\n")
         print("是否线上派单:" + str(bool(self.pressing_order)) + ';是否考虑当前时间点未来的Aunt:' + str(
             bool(self.future_aunt)) + '\n')
         print("是否考虑优质阿姨策略：" + str(bool(self.use_high_quality)) + '\n')
         print('考虑' + str(self.pressing_order) + '小时后的Order  考虑' + str(self.future_aunt) + '小时后的Aunt\n')
         for time in time_linspace:
+            start = datetime.datetime.now()
             self.order.updata_order_available(time, self.pressing_order)
             self.aunt.updata_aunt_assign_status(time)
             print(f"*************第{time}时刻*************")
@@ -175,13 +178,17 @@ class Assign(Aunt, Order):
             n += order_assign
             self.order.if_retainable(time)
             result22 = pd.concat([result22, self.order.data])
-            obj_n_t_list[int(2 * (time + self.enlarge_time_axis)), :] = [obj_t, order_exist, order_assign, time]
+            index = int(2 * (time + self.enlarge_time_axis))
+            obj_n_t_list[index, :] = [obj_t, order_exist, order_assign, time]
+            period = (datetime.datetime.now().timestamp() - start.timestamp()) / 60
+            time_plot.loc[index, :] = [period, time]
         # 计算目标函数的均值
         obj_n_t_list[:, 0] = obj_n_t_list[:, 0] / obj_n_t_list[:, 2]
         obj_n_t_list[np.isnan(obj_n_t_list[:, 0]), 0] = 0
         # 绘制订单分配折线图
         # self.plot_score_linechart1(obj_n_t_list)
-        # self.plot_score_linechart2(obj_n_t_list)
+        self.plot_score_linechart2(obj_n_t_list)
+        self.plot_solve_time(time_plot)
         return obj, n, result22
 
     def grid_iter_solve(self, timestamp):
@@ -413,7 +420,8 @@ class Assign(Aunt, Order):
         adjust_text(texts)
         ax.right_ax.set_ylabel('订单数')
         plt.legend(bbox_to_anchor=(1.05, 1.0), loc=1, borderaxespad=0.)
-        plt.savefig(f'../../pic/双轴折线图/2.1,433双轴折线图1,{self.gridshape}.png')
+        plt.savefig(
+            f'../../pic/双轴折线图/2.1,{self.pressing_order}{self.future_aunt}{self.enlarge_time_axis}双轴折线图1,{self.gridshape}.png')
         plt.show()
 
     def plot_score_linechart2(self, data):
@@ -453,7 +461,8 @@ class Assign(Aunt, Order):
         ax2.grid()
         # 设置图例
         ax2.legend(loc=1)
-        plt.savefig(f'../../pic/双轴折线图/2.1,433双轴折线图2,{self.gridshape}.png')
+        plt.savefig(
+            f'../../pic/双轴折线图/2.1,{self.pressing_order}{self.future_aunt}{self.enlarge_time_axis}双轴折线图2,{self.gridshape}.png')
         plt.show()
 
     def plot_interpolation(self):
@@ -480,7 +489,8 @@ class Assign(Aunt, Order):
         ax.set_xlabel('x坐标')
         ax.set_ylabel('y坐标', labelpad=0.5)
         ax.grid(False)
-        plt.savefig('../../pic/插值/3d.png')
+        plt.savefig(
+            f'../../pic/插值/3d{self.pressing_order}{self.future_aunt}{self.enlarge_time_axis}{self.gridshape}.png')
         plt.show()
 
         plt.figure(2, figsize=(16, 12))
@@ -492,7 +502,8 @@ class Assign(Aunt, Order):
         ax2.set_xlabel('x坐标', labelpad=0.3)
         ax2.set_ylabel('y坐标')
         plt.xticks(rotation=40)
-        plt.savefig('../../pic/插值/热力图.png')
+        plt.savefig(
+            f'../../pic/插值/{self.pressing_order}{self.future_aunt}{self.enlarge_time_axis}热力图{self.gridshape}.png')
         plt.show()
 
         plt.figure(3, figsize=(12, 12))
@@ -504,5 +515,26 @@ class Assign(Aunt, Order):
         plt.ylabel('y坐标', fontsize=25)
         plt.xticks(fontsize=25)
         plt.yticks(fontsize=25)
-        plt.savefig('../../pic/插值/等值线.png')
+        plt.savefig(
+            f'../../pic/插值/{self.pressing_order}{self.future_aunt}{self.enlarge_time_axis}等值线{self.gridshape}.png')
+        plt.show()
+
+    def plot_solve_time(self, data):
+        data['cumsum'] = data['period'].cumsum() / sum(data['period'])
+        fig = plt.figure(figsize=(10, 5))
+        ax1 = fig.add_subplot(1, 2, 1)
+        ax2 = fig.add_subplot(1, 2, 2)
+        ax1.plot(data['time'], data['period'], marker='o')
+        ax2.plot(data['time'], data['cumsum'], marker='o')
+        ax1.set_title("运行时间折线图")
+        ax2.set_title("运行时间占比折线图")
+        # 设置坐标
+        ax1.set_xlabel("时间t")
+        ax1.set_ylabel("运行分钟")
+        ax2.set_xlabel("时间t")
+        ax2.set_ylabel("运行时长占比")
+        ax1.grid()
+        ax2.grid()
+        plt.savefig(
+            f'../../pic/运行时间图/{self.pressing_order}{self.future_aunt}{self.enlarge_time_axis},{self.gridshape}.png')
         plt.show()

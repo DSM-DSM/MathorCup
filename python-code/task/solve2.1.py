@@ -15,7 +15,7 @@ from order import Order
 def check_pressing(data):
     data['current_time_1'] = (data['current_time'] - 1662768000) / 3600
     groups = data.groupby('id')
-    n = data['id'].unique().shape[0]
+    n = data.index.unique().shape[0]
     arr = np.zeros((n, 1))
     for key, values in groups:
         value = values[values['retainable'] == 0]
@@ -39,9 +39,9 @@ def main():
     shape = (5, 5)
     assign = Assign(aunt, order, shape)
     assign.use_high_quality = False
-    assign.pressing_order = 5
-    assign.future_aunt = 3
-    assign.enlarge_time_axis = 5
+    assign.pressing_order = 2
+    assign.future_aunt = 2
+    assign.enlarge_time_axis = 3
     obj_final, n_final, result = assign.time_solve()
     print(obj_final / n_final)
     end = datetime.datetime.now()
